@@ -1,0 +1,10 @@
+﻿[agents]
+
+enabled = true
+
+# Enough for four independent scientific critics plus
+# literature-processing agents when needed.
+max_concurrent_threads_per_session = 8
+
+# Keep interruption information visible to the parent.
+interrupt_message = true
