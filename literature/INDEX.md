@@ -1,30 +1,58 @@
 # Literature Index
 
-**Status:** NOT_STARTED
+**Status:** DISCOVERY_COMPLETE
 
-Status progression:
+**Topic:** Mechanistic understanding of active visual perception under partial observability and environmental uncertainty.
 
-- `NOT_STARTED`
-- `DISCOVERY_PASS_COMPLETE` after Stage 1 records are persisted
-- `DISCOVERY_COMPLETE` after the Stage 2 coverage challenge
+**Discovery date:** 2026-08-20
 
-**Topic:**
+**Literature cutoff / search date:** 2026-08-20
 
-**Discovery date:**
-
-**Literature cutoff / search date:**
-
-**Broad query scope:**
+**Broad query scope:** Active visual sensing and visual search; eye-movement control under partial observability; Bayesian, active-inference, discriminative, and bounded-control accounts; visual uncertainty and volatility; oculomotor neurophysiology and causal circuit evidence.
 
 ## Coverage assessment
 
-Record the provisional field map, challenged omissions, scope coverage, and the scout's saturation judgment.
+The two-pass map includes normative Bayesian search and utility-sensitive POMDP control; active-inference, discriminative-learning, heuristic, and bounded-control alternatives; and behavioral results that conflict across task regimes. FEF, SC, and SEF supply evidence for prior-, evidence-, and partial-information-dependent saccade selection, while volatility-sensitive gaze behavior lacks an integrated causal circuit account. The coverage challenge added intrinsic action/effort costs, embodied closed-loop behavior, and limits on transsaccadic integration. It also added a theory-testability critique: active-inference fits should be compared directly with alternatives. Saturated for the targeted challenge: additional retrieval mainly produced duplicates, and the current records cover explanatory families, contradictions/negative evidence, scope regimes, and recent capabilities.
+
+## Minimum sufficient evidence set
+
+Selected CORE papers: Najemnik & Geisler (2005); Morvan & Maloney (2012); Yang, Lengyel & Wolpert (2016); Ahmad, Huang & Yu (2014); Zhou & Yu (2021); Chari et al. (2023); Mirza et al. (2018); Parr & Friston (2017); McPeek & Keller (2004); Horwitz & Newsome (2001); Glaser et al. (2020); Pasturel, Montagnini & Perrinet (2020); Koevoet et al. (2025); and Goettker, Powell & Hayhoe (2025). Each is required to preserve, respectively, the normative benchmark, direct limiting evidence, sequential hidden-state behavior, cost-sensitive control, biological constraints, uncertainty-source dissociation, empirical and formal active-inference accounts, causal/evidence/prior circuit evidence, volatility adaptation, intrinsic effort costs, or embodied scope limits. The proposed Isoda et al. record was excluded after a source-metadata mismatch. All remaining records are context only.
+
+## Evidence sufficiency repair
+
+The Najemnik & Geisler (2005) and McPeek & Keller (2004) cards remain `PARTIAL` and `ABSTRACT_ONLY`, respectively. Their retained uses are limited to a conditional normative benchmark and a task-specific causal SC contribution; no uninspected quantitative or circuit-mechanistic detail will enter the map. The Isoda record was checked against its original source and excluded because the source title and system did not match the discovery record. No remaining weakly inspected claim is decision-critical for mapping.
 
 ## Discovery records
 
 | Classification | Paper | Year / status | Source URL | Evidence role | Relevance | Card path |
 |---|---|---|---|---|---|---|
+| CORE | Najemnik & Geisler, *Optimal eye movement strategies in visual search* | 2005 / PUBLISHED, Nature | https://doi.org/10.1038/nature03390 | Normative benchmark; behavioral support | Bayesian ideal search in foveated vision | literature/cards/najemnik_geisler_2005.md |
+| CORE | Najemnik & Geisler, *Eye movement statistics in humans are consistent with an optimal search strategy* | 2008 / PUBLISHED, Journal of Vision | https://doi.org/10.1167/8.3.4 | Behavioral corroboration | Parameter-free ideal-observer comparison | |
+| CORE | Morvan & Maloney, *Human visual search does not maximize the post-saccadic probability of identifying targets* | 2012 / PUBLISHED, PLoS Computational Biology | https://doi.org/10.1371/journal.pcbi.1002342 | Falsification / constraint | Direct limit on generic optimal-saccade claims | literature/cards/morvan_maloney_2012.md |
+| CORE | Yang, Lengyel & Wolpert, *Active sensing in the categorization of visual patterns* | 2016 / PUBLISHED, eLife | https://doi.org/10.7554/eLife.12215 | Behavioral mechanism | Hidden-category inference from sequential fixations | literature/cards/yang_lengyel_wolpert_2016.md |
+| CORE | Ahmad, Huang & Yu, *Cost-sensitive Bayesian control policy in human active sensing* | 2014 / PUBLISHED, Frontiers in Human Neuroscience | https://doi.org/10.3389/fnhum.2014.00955 | Competing computational theory | Task-cost alternative to pure information gain | literature/cards/ahmad_huang_yu_2014.md |
+| CORE | Zhou & Yu, *Human visual search follows a suboptimal Bayesian strategy revealed by a spatiotemporal computational model and experiment* | 2021 / PUBLISHED, Communications Biology | https://doi.org/10.1038/s42003-020-01485-0 | Constraint-based reconciliation | Sensory, motor, and memory limits | literature/cards/zhou_yu_2021.md |
+| CORE | Chari et al., *Bayesian and discriminative models for active visual perception across saccades* | 2023 / PUBLISHED, Journal of Neuroscience | https://pmc.ncbi.nlm.nih.gov/articles/PMC10368208/ | Contradiction; cross-species model evidence | Distinct treatment of external and saccade-related uncertainty; DOI metadata needs verification | literature/cards/chari_etal_2023.md |
+| CORE | Mirza et al., *Human visual exploration reduces uncertainty about the sensed world* | 2018 / PUBLISHED, PLoS ONE | https://doi.org/10.1371/journal.pone.0190429 | Theory-linked behavioral model evidence | Epistemic active-inference gaze account | literature/cards/mirza_etal_2018.md |
+| CORE | Parr & Friston, *Uncertainty, epistemics and active inference* | 2017 / PUBLISHED, Journal of the Royal Society Interface | https://doi.org/10.1098/rsif.2017.0376 | Formal theory / simulation | Partial-observability and volatile-environment framework | literature/cards/parr_friston_2017.md |
+| CORE | Parr & Friston, *Active inference and the anatomy of oculomotion* | 2018 / PUBLISHED, Neuropsychologia | https://doi.org/10.1016/j.neuropsychologia.2018.01.041 | Anatomically constrained theory / simulation | Proposed neural implementation | |
+| CORE | Eckstein, *Probabilistic computations for attention, eye movements, and search* | 2017 / PUBLISHED, Annual Review of Vision Science | https://doi.org/10.1146/annurev-vision-102016-061220 | Review / field map | Synthesis and limitations of Bayesian accounts | |
+| CORE | Schall & Hanes, *Neural basis of saccade target selection in frontal eye field during visual search* | 1993 / PUBLISHED, Nature | https://doi.org/10.1038/366467a0 | Mechanistic neurophysiology | FEF target-selection dynamics | |
+| CORE | McPeek & Keller, *Deficits in saccade target selection after inactivation of superior colliculus* | 2004 / PUBLISHED, Nature Neuroscience | https://doi.org/10.1038/nn1269 | Causal neurophysiology | SC contribution to selection | literature/cards/mcpeek_keller_2004.md |
+| CORE | Horwitz & Newsome, *Target selection for saccadic eye movements: Prelude activity in the superior colliculus during a direction-discrimination task* | 2001 / PUBLISHED, Journal of Neurophysiology | https://doi.org/10.1152/jn.2001.86.5.2543 | Mechanistic neurophysiology | Evidence strength and target selection | literature/cards/horwitz_newsome_2001.md |
+| CORE | Glaser et al., *From prior information to saccade selection: Evolution of frontal eye field activity during natural scene search* | 2020 / PUBLISHED, Cerebral Cortex | https://doi.org/10.1093/cercor/bhz216 | Neural population mechanism | Learned priors to selected saccades | literature/cards/glaser_etal_2020.md |
+| IRRELEVANT | Isoda et al., *Preselection of potential target spaces based on partial information by the supplementary eye field* | 2024 / METADATA MISMATCH | https://pubmed.ncbi.nlm.nih.gov/39367079/ | Excluded after source check | Retrieved source concerns a different PMv/MPFC social-context study | |
+| CORE | Pasturel, Montagnini & Perrinet, *Humans adapt their anticipatory eye movements to the volatility of visual motion properties* | 2020 / PUBLISHED, PLoS Computational Biology | https://doi.org/10.1371/journal.pcbi.1007438 | Behavioral / computational volatility evidence | Volatility-regulated predictive visual action | literature/cards/pasturel_etal_2020.md |
+| SUPPORTING | Arthur & Harris, *Predictive eye movements are adjusted in a Bayes-optimal fashion in response to unexpectedly changing environmental probabilities* | 2021 / PUBLISHED, Cortex | https://doi.org/10.1016/j.cortex.2021.09.017 | Behavioral computational corroboration | Probability-change adaptation; task details require full-text check | |
+| SUPPORTING | Stojić et al., *Uncertainty in learning, choice, and visual fixation* | 2020 / PUBLISHED, PNAS | https://doi.org/10.1073/pnas.1911348117 | Cross-domain mechanistic constraint | Coupling of uncertainty, gaze, learning, and choice | |
+| SUPPORTING | Arató et al., *Eye movements reflect active statistical learning* | 2024 / PUBLISHED, Journal of Vision; metadata NEEDS_VERIFICATION | https://pmc.ncbi.nlm.nih.gov/articles/PMC11146064/ | Recent behavioral evidence | Structure learning changes scan patterns | |
+| SUPPORTING | *Environmental volatility shifts visual search from capture to caution* | 2026 / PREPRINT, bioRxiv; authors NEEDS_VERIFICATION | https://doi.org/10.64898/2026.05.08.723763 | Recent competing result / anomaly | Volatility effect attributed to caution rather than early gating | |
+| PERIPHERAL | Chen, Li & Kwok, *Active vision in robotic systems: A survey of recent developments* | 2011 / PUBLISHED, International Journal of Robotics Research | https://doi.org/10.1177/0278364911410755 | Engineering context / review | Algorithmic sensor-planning context | |
+| CORE | Goettker, Powell & Hayhoe, *Approaches to understanding natural behavior* | 2025 / PUBLISHED, Journal of Vision | https://doi.org/10.1167/jov.25.6.12 | Scope / capability review | Embodied closed-loop gaze, memory, planning, and task structure | literature/cards/goettker_etal_2025.md |
+| SUPPORTING | Lappi, *Eye movements in the wild: Oculomotor control, gaze behavior & frames of reference* | 2016 / PUBLISHED, Neuroscience & Biobehavioral Reviews | https://doi.org/10.1016/j.neubiorev.2016.06.006 | Ecological-validity constraint | Eye-head-body coordinate transformations | |
+| CORE | Koevoet et al., *Effort drives saccade selection* | 2025 / PUBLISHED, eLife | https://doi.org/10.7554/eLife.97760 | Behavioral constraint | Intrinsic oculomotor and cognitive effort costs | literature/cards/koevoet_etal_2025.md |
+| CORE | Liang & Zhaoping, *Trans-saccadic integration for object recognition peters out with pre-saccadic object eccentricity as target-directed saccades become more saliency-driven* | 2025 / PUBLISHED, Vision Research | https://doi.org/10.1016/j.visres.2024.108500 | Ecological-regime constraint | Integration limit in cluttered exploratory scenes; exact boundary NEEDS_VERIFICATION | |
+| SUPPORTING | Irwin, Yantis & Jonides, *Evidence against visual integration across saccadic eye movements* | 1983 / PUBLISHED, Perception & Psychophysics | https://doi.org/10.3758/BF03205895 | Negative evidence | Limits on general high-capacity integrative buffer | |
+| SUPPORTING | Hodson, Mehta & Smith, *The empirical status of predictive coding and active inference* | 2024 / PUBLISHED, Neuroscience & Biobehavioral Reviews | https://doi.org/10.1016/j.neubiorev.2023.105473 | Methodological critique | Direct model comparison required for active-inference claims | |
 
-Classifications: `CORE`, `SUPPORTING`, `PERIPHERAL`, `IRRELEVANT`.
-
-Card only CORE and high-leverage SUPPORTING papers selected for the minimum sufficient evidence set.
+Classifications: `CORE`, `SUPPORTING`, `PERIPHERAL`, `IRRELEVANT`. Card only CORE and high-leverage SUPPORTING records selected in Stage 3.
