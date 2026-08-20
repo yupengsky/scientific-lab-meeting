@@ -1,0 +1,1864 @@
+Rethinking the Role of Demonstrations:
+What Makes In-Context Learning Work?
+Sewon Min1,2 Xinxi Lyu1 Ari Holtzman1 Mikel Artetxe2
+Mike Lewis2 Hannaneh Hajishirzi1,3 Luke Zettlemoyer1,2
+1University of Washington 2Meta AI 3Allen Institute for AI
+{sewon,alrope,ahai,hannaneh,lsz}@cs.washington.edu
+{artetxe,mikelewis}@meta.com
+Abstract
+Large language models (LMs) are able to in-
+context learn—perform a new task via infer-
+ence alone by conditioning on a few input-
+label pairs (demonstrations) and making pre-
+dictions for new inputs. However, there has
+been little understanding of how the model
+learns and which aspects of the demonstra-
+tions contribute to end task performance. In
+this paper, we show that ground truth demon-
+strations are in fact not required—randomly
+replacing labels in the demonstrations barely
+hurts performance on a range of classiﬁcation
+and multi-choce tasks, consistently over 12 dif-
+ferent models including GPT-3. Instead, we
+ﬁnd that other aspects of the demonstrations
+are the key drivers of end task performance, in-
+cluding the fact that they provide a few exam-
+ples of (1) the label space, (2) the distribution
+of the input text, and (3) the overall format of
+the sequence. Together, our analysis provides
+a new way of understanding how and why
+in-context learning works, while opening up
+new questions about how much can be learned
+from large language models through inference
+alone.
+1 Introduction
+Large language models (LMs) have shown impres-
+sive performance on downstream tasks by simply
+conditioning on a few input-label pairs (demonstra-
+tions); this type of inference has been referred to as
+in-context learning (Brown et al., 2020). Despite in-
+context learning consistently outperforming zero-
+shot inference on a wide range of tasks (Zhao et al.,
+2021; Liu et al., 2021), there is little understanding
+of how it works and which aspects of the demon-
+strations contribute to end task performance.
+In this paper, we show that ground truth demon-
+strations are in fact not required for effective in-
+context learning (Section 4). Speciﬁcally, replac-
+ing the labels in demonstrations with random labels
+barely hurts performance in a range of classiﬁca-
+tion and multi-choice tasks (Figure 1). The result
+MetaICL (774M) GPT-J (6B) GPT-3 (175B)
+25
+30
+35
+40
+45
+50
+55
+60
+65Macro-F1 (%)
+Classification
+No Demos Demos w/ gold labels Demos w/ random labels
+MetaICL (774M) GPT-J (6B) GPT-3 (175B)
+35
+40
+45
+50
+55
+60
+65
+70
+75Accuracy (%)
+Multi-choice
+No Demos Demos w/ gold labels Demos w/ random labels
+Figure 1: Results in classiﬁcation (top) and multi-
+choice tasks (bottom), using three LMs with varying
+size. Reported on six datasets on which GPT-3 is eval-
+uated; the channel method is used. See Section 4 for
+the full results. In-context learning performance drops
+only marginally when labels in the demonstrations are
+replaced by random labels.
+is consistent over 12 different models including the
+GPT-3 family (Radford et al., 2019; Min et al.,
+2021b; Wang and Komatsuzaki, 2021; Artetxe
+et al., 2021; Brown et al., 2020). This strongly
+suggests, counter-intuitively, that the model does
+not rely on the input-label mapping in the demon-
+strations to perform the task.
+Further analysis investigates which parts of
+demonstrations actually do contribute to the perfor-
+mance. We identify possible aspects of demonstra-
+tions (e.g., the label space and the distribution of
+the input text) and evaluate a series of variants of
+the demonstrations to quantify the impact of each
+(Section 5). We ﬁnd that: (1) the label space and
+the distribution of the input text speciﬁed by the
+demonstrations are both key to in-context learn-
+ing (regardless of whether the labels are correct
+for individual inputs); (2) specifying the overall
+format is also crucial, e.g., when the label space
+is unknown, using random English words as la-
+bels is signiﬁcantly better than using no labels; and
+arXiv:2202.12837v2  [cs.CL]  20 Oct 2022\n\n(3) meta-training with an in-context learning objec-
+tive (Min et al., 2021b) magniﬁes these effects—the
+models almost exclusively exploit simpler aspects
+of the demonstrations like the format rather than
+the input-label mapping.
+In summary, our analysis provides a new way
+of understanding the role of the demonstrations in
+in-context learning. We empirically show that the
+model (1) counter-intuitively does not rely on the
+ground truth input-label mapping provided in the
+demonstrations as much as we thought (Section 4),
+and (2) nonetheless still beneﬁts from knowing the
+label space and the distribution of inputs speciﬁed
+by the demonstrations (Section 5). We also include
+a discussion of broader implications, e.g., what we
+can say about the model learning at test time, and
+avenues for future work (Section 6).
+2 Related Work
+Large language models have been key to strong per-
+formance in a wide range of downstream tasks (De-
+vlin et al., 2019; Radford et al., 2019; Liu et al.,
+2019; Raffel et al., 2020; Lewis et al., 2020). While
+ﬁnetuning has been a popular approach to transfer
+to new tasks (Devlin et al., 2019), it is often imprac-
+tical to ﬁnetune a very large model (e.g.≥10B pa-
+rameters). Brown et al. (2020) propose in-context
+learning as an alternative way to learn a new task.
+As depicted in Figure 2, the LM learns a new task
+via inference alone by conditioning on a concatena-
+tion of the training data as demonstrations, without
+any gradient updates.
+In-context learning has been the focus of signif-
+icant study since its introduction. Prior work pro-
+poses better ways of formulating the problem (Zhao
+et al., 2021; Holtzman et al., 2021; Min et al.,
+2021a), better ways of choosing labeled exam-
+ples for the demonstrations (Liu et al., 2021; Lu
+et al., 2021; Rubin et al., 2021), meta-training
+with an explicit in-context learning objective (Chen
+et al., 2021; Min et al., 2021b), and learning to
+follow instructions as a variant of in-context learn-
+ing (Mishra et al., 2021b; Efrat and Levy, 2020;
+Wei et al., 2022a; Sanh et al., 2022). At the
+same time, some work reports brittleness and over-
+sensitivity for in-context learning (Lu et al., 2021;
+Zhao et al., 2021; Mishra et al., 2021a).
+Relatively less work has been done to understand
+why in-context learning works. Xie et al. (2022)
+provide theoretical analysis that in-context learn-
+ing can be formalized as Bayesian inference that
+Circulation revenue has increased by 5% in Finland.         \n    Positive 
+Panostaja did not disclose the purchase price.                  \n    Neutral 
+Paying off the national debt will be extremely painful.      \n    Negative 
+The acquisition will have an immediate positive impact.  \n    ________
+ =
+Demonstrations
+LM
+Positive
+Test input
+Prediction
+Figure 2: An overview of in-context learning. The
+demonstrations consist of k input-label pairs from the
+training data (k = 3 in the ﬁgure).
+Model # Params Public Meta-trained
+GPT-2 Large 774M  
+MetaICL 774M  
+GPT-J 6B  
+fairseq 6.7B† 6.7B  
+fairseq 13B† 13B  
+GPT-3 175B ‡  
+Table 1: A list of LMs used in the experiments:
+GPT-2 (Radford et al., 2019), MetaICL (Min et al.,
+2021b), GPT-J (Wang and Komatsuzaki, 2021), fairseq
+LMs (Artetxe et al., 2021) and GPT-3 (Brown et al.,
+2020). ‘Public’ indicates whether the model weights
+are public; ‘Meta-trained’ indicates whether the model
+is meta-trained with an in-context learning objective.
+†We use dense models in Artetxe et al. (2021) and re-
+fer them as fairseq LMs for convenience. ‡We use the
+Davinci API (the base version, not the instruct version)
+and assume it to be 175B, following Gao et al. (2021)
+and Artetxe et al. (2021).
+uses the demonstrations to recover latent concepts.
+Razeghi et al. (2022) show that in-context learn-
+ing performance is highly correlated with term fre-
+quencies in the pretraining data. To the best of our
+knowledge, this paper is the ﬁrst that provides an
+empirical analysis that investigates why in-context
+learning achieves performance gains over zero-shot
+inference. We ﬁnd that the ground truth input-label
+mapping in the demonstrations has only a marginal
+effect, and measure the impact of ﬁner-grained as-
+pects of the demonstrations.
+3 Experimental Setup
+We describe the experimental setup used in our
+analysis (Section 4 and 5).
+Models. We experiment with 12 models in to-
+tal. We include 6 language models (Table 1), all
+of which are decoder-only, dense LMs. We use
+each LM with two inference methods, direct and
+channel, following Min et al. (2021a). The sizes
+of LMs vary from 774M to 175B. We include the\n\nDirect
+GPT-2
+Channel
+GPT-2
+Direct
+MetaICL
+Channel
+MetaICL
+Direct
+GPT-J
+Channel
+GPT-J
+Direct
+fairseq 6.7B
+Channel
+fairseq 6.7B
+Direct
+fairseq 13B
+Channel
+fairseq 13B
+Direct
+GPT-3
+Channel
+GPT-3
+25
+30
+35
+40
+45
+50
+55
+60Macro-F1 (%)
+Classification
+No Demos Demos w/ gold labels Demos w/ random labels
+Direct
+GPT-2
+Channel
+GPT-2
+Direct
+MetaICL
+Channel
+MetaICL
+Direct
+GPT-J
+Channel
+GPT-J
+Direct
+fairseq 6.7B
+Channel
+fairseq 6.7B
+Direct
+fairseq 13B
+Channel
+fairseq 13B
+Direct
+GPT-3
+Channel
+GPT-3
+35
+40
+45
+50
+55
+60
+65
+70Accuracy (%)
+Multi-choice
+No Demos Demos w/ gold labels Demos w/ random labels
+Figure 3: Results when using no-demonstrations, demonstrations with gold labels, and demonstrations with ran-
+dom labels in classiﬁcation (top) and multi-choice tasks (bottom). The ﬁrst eight models are evaluated on 16
+classiﬁcation and 10 multi-choice datasets, and the last four models are evaluated on 3 classiﬁcation and 3 multi-
+choice datasets. See Figure 11 for numbers comparable across all models. Model performance with random
+labels is very close to performance with gold labels (more discussion in Section 4.1).
+largest dense LM (GPT-3) and the largest publicly
+released dense LM (fairseq 13B) at the time of con-
+ducting experiments. We also include MetaICL,
+which is initialized from GPT-2 Large and then
+meta-trained on a collection of supervised datasets
+with an in-context learning objective, and ensure
+that our evaluation datasets do not overlap with
+those used at meta-training time.
+Evaluation Data. We evaluate on 26 datasets,
+including sentiment analysis, paraphrase detection,
+natural language inference, hate speech detection,
+question answering, and sentence completion (full
+list and references provided in Appendix A).1 All
+datasets are classiﬁcation and multi-choice tasks.
+We use these datasets because they (1) are true
+low-resource datasets with less than 10K train-
+ing examples, (2) include well-studied bench-
+marks from GLUE (Wang et al., 2018) and Super-
+GLUE (Wang et al., 2019a), and (3) cover diverse
+domains including science, social media, ﬁnance,
+and more.
+Other Details. We use k = 16 examples as
+demonstrations by default for all experiments in
+the paper, unless otherwise speciﬁed. Examples
+are sampled at uniform from the training data.
+We choose a set of k training examples using
+5 different random seeds and run experiments 5
+times. For fairseq 13B and GPT-3, due to lim-
+ited resources, we experiment with a subset of 6
+1For convenience, we use ‘labels’ to refer to the output for
+the task, though our datasets include non-classiﬁcation tasks.
+datasets2 and 3 random seeds. We report Macro-
+F13 for classiﬁcation tasks and Accuracy for multi-
+choice tasks. We compute per-dataset average over
+seeds, and then report macro-average over datasets.
+We use the minimal templates in forming an in-
+put sequence from an example. We refer to Ap-
+pendix B for more details. All experiments are
+reproducible from github.com/Alrope123/
+rethinking-demonstrations.
+4 Ground Truth Matters Little
+4.1 Gold labels vs. random labels
+To see the impact of correctly-paired inputs and
+labels in the demonstrations—which we call the
+ground truth input-label mapping—we compare the
+following three methods.4
+No demonstrations is a typical zero-shot method
+that does not use any labeled data. A prediction
+is made via argmaxy∈CP (y|x), where x is the test
+input andC is a small discrete set of possible labels.
+Demonstrations w/ gold labels are used in a typi-
+cal in-context learning method with k labeled ex-
+amples (x1, y1)...(xk, yk). A concatenation of k
+input-label pairs is used to make a prediction via
+argmaxy∈CP (y|x1, y1...xk, yk, x).
+2Three classiﬁcation and three multi-choice: MRPC, RTE,
+Tweet_eval-hate, OpenbookQA, CommonsenseQA, COPA.
+3Known to be better for imbalanced classes.
+4Without loss of generality, all methods in Section 4 and 5
+are described based on the direct method, but can be trivially
+converted to the channel method by ﬂipping x and y.\n\nMetaICL (Classification) GPT-J (Classification) MetaICL (Multi-choice) GPT-J (Multi-choice)
+25
+30
+35
+40
+45
+50
+55
+60
+65Accuracy (%)
+100% correct 75% correct 50% correct 25% correct 0% correct No Demos
+Figure 4: Results with varying number of correct labels in the demonstrations. Channel and Direct used for
+classiﬁcation and multi-choice, respectively. Performance with no demonstrations (blue) is reported as a reference.
+Demonstrations w/ random labels are formed
+with random labels, instead of gold labels from
+the labeled data. Each xi (1 ≤i ≤
+k) is paired with ˜yi that is randomly sam-
+pled at uniform from C. A concatenation of
+(x1,˜y1)...(xk,˜yk) is then used to make a predic-
+tion via argmaxy∈CP (y|x1,˜y1...xk,˜yk, x).
+Results are reported in Figure 3. First, using the
+demonstrations with gold labels signiﬁcantly im-
+proves the performance over no demonstrations,5
+as it has been consistently found in much of prior
+work (Brown et al., 2020; Zhao et al., 2021; Liu
+et al., 2021). We then ﬁnd thatreplacing gold la-
+bels with random labels only marginally hurts
+performance. The trend is consistent over nearly
+all models: models see performance drop in the
+range of 0–5% absolute. There is less impact in
+replacing labels in multi-choice tasks (1.7% on av-
+erage) than in classiﬁcation tasks (2.6% absolute).
+This result indicates that the ground truth input-
+label pairs are not necessary to achieve perfor-
+mance gains. This is counter-intuitive, given that
+correctly paired training data is critical in typical
+supervised training—it informs the model of the ex-
+pected input-label correspondence required to per-
+form the downstream task. Nonetheless, the mod-
+els do achieve non-trivial performance on the down-
+stream tasks. This strongly suggests that the mod-
+els are capable of recovering the expected input-
+label correspondence for the task; however, it isnot
+directly from the pairings in the demonstrations.
+It is also worth noting that there is particularly
+little performance drop in MetaICL: 0.1–0.9% ab-
+solute. This suggests that meta-training with an
+explicit in-context learning objective actually en-
+courages the model to essentially ignore the input-
+5There are some exceptions, e.g., in the classiﬁcation tasks,
+Direct GPT-2, Direct GPT-J and Direct fairseq 6.7B models
+are not signiﬁcantly better than random guessing on many
+datasets; Channel fairseq 13B has signiﬁcantly better no-
+demonstrations performance compared to demonstrations with
+gold labels. We thus discuss the results from these models less
+signiﬁcantly for the rest of analysis.
+0 4 8 16 32
+k
+35
+40
+45
+50
+55
+60Macro-F1 (%)
+Classification
+Demos w/ gold
+Demos w/ random
+0 4 8 16 32
+k
+35
+40
+45
+50
+55
+60Accuracy (%)
+Multi-choice
+Demos w/ gold
+Demos w/ random
+Figure 5: Ablations on varying numbers of examples
+in the demonstrations (k). Models that are the best un-
+der 13B in each task category (Channel MetaICL and
+Direct GPT-J, respectively) are used.
+label mapping and exploit other components of the
+demonstrations (more discussion in Section 5.4).
+In Appendix C.2, we provide additional results
+showing that (1) selecting random labels from a
+true distribution of labels (instead of a uniform
+distribution) reduces the gap even further, and (2)
+the trends may depend on the dataset, although the
+overall trend is consistent over most datasets.
+4.2 Ablations
+For additional ablations, we experiment with 5 clas-
+siﬁcation and 4 multi-choice datasets.6
+Does the number of correct labels matter? To
+further examine the impact of correctness of la-
+bels in the demonstrations, we conduct an ablation
+study by varying the number of correct labels in the
+demonstrations. We evaluate “Demonstrations w/
+a% correct labels” ( 0≤a≤100) which consist
+of k×a/100 correct pairs and k×(1−a/100)
+incorrect pairs (see Algorithm 1 in Appendix B).
+Here, a = 100 is the same as typical in-context
+learning, i.e., demonstrations w/ gold labels.
+Results are reported in Figure 4. Model perfor-
+mance is fairly insensitive to the number of correct
+labels in the demonstrations. In fact, always us-
+ing incorrect labels signiﬁcantly outperforms no-
+6Classiﬁcation includes: MRPC, RTE, Tweet_eval-hate,
+SICK, poem-sentiment; Multi-choice includes OpenbookQA,
+CommonsenseQA, COPA and ARC.\n\nMetaICL (Classification) GPT-J (Classification) MetaICL (Multi-choice) GPT-J (Multi-choice)
+25
+30
+35
+40
+45
+50
+55
+60
+65Accuracy (%)
+No demos Gold labels Random labels No demos + T Gold labels + T Random labels + T
+Figure 6: Results with minimal templates and manual templates. ‘+T’ indicates that manual templates are used.
+Channel and Direct used for classiﬁcation and multi-choice, respectively.
+demonstrations, e.g., preserving 92%, 100% and
+97% of improvements from using the demonstra-
+tions with MetaICL in classiﬁcation, MetaICL in
+multi-choice, and GPT-J in multi-choice, respec-
+tively. In contrast, GPT-J in classiﬁcation sees
+relatively signiﬁcant performance drop with more
+incorrect labels, e.g., nearly 10% drop in perfor-
+mance when always using incorrect labels. Still,
+always using incorrect labels is signiﬁcantly better
+than no demonstrations.
+Is the result consistent with varying k? We
+study the impact of the number of input-label pairs
+(k) in the demonstrations. Results are reported in
+Figure 5. First, using the demonstrations signiﬁ-
+cantly outperforms the no demonstrations method
+even with small k (k = 4), and performance drop
+from using gold labels to using random labels is
+consistently small across varying k, in the range of
+0.8–1.6%.7 Interestingly, model performance does
+not increase much as k increases when k≥8, both
+with gold labels and with random labels. This is
+in contrast with typical supervised training where
+model performance rapidly increases ask increases,
+especially when k is small. We hypothesize that
+larger labeled data is beneﬁcial mainly for super-
+vising the input-label correspondence, and other
+components of the data like the example inputs,
+example labels and the data format are easier to
+recover from the small data, which is potentially a
+reason for minimal performance gains from larger
+k (more discussion in Section 5).
+Is the result consistent with better templates?
+While we use minimal templates by default, we
+also explore manual templates, i.e., templates that
+are manually written in a dataset-speciﬁc manner,
+taken from prior work (details in Appendix B). Fig-
+ure 6 shows that the trend—replacing gold labels
+with random labels barely hurting performance—
+holds with manual templates. It is worth noting
+7With an exception of 4.4% in classiﬁcation withk = 4,
+likely due to a high variance with a very small value of k.
+Circulation revenue has increased by 5% in Finland.         \n         Positive
+Format 
+(The use 
+of pairs)
+ =
+Distribution of inputs Label spaceDemonstrations
+Test example Input-label mapping
+Panostaja did not disclose the purchase price.                  \n         Neutral
+Paying off the national debt will be extremely painful.      \n         Negative
+The acquisition will have an immediate positive impact.  \n         ?
+Figure 7: Four different aspects in the demonstrations:
+the input-label mapping, the distribution of the input
+text, the label space, and the use of input-label pairing
+as the format of the demonstrations.
+that using manual templates does not always out-
+perform using minimal templates.
+5 Why does In-Context Learning work?
+Section 4 shows that the ground truth input-label
+mapping in the demonstrations has little impact to
+performance gains from in-context learning. This
+section further examines what other aspects of the
+demonstrations lead to good performance of in-
+context learning.
+We identify four aspects of the demonstrations
+(x1, y1)...(xk, yk) that potentially provide learning
+signal (depicted in Figure 7).
+1. The input-label mapping, i.e., whether each
+input xi is paired with a correct label yi.
+2. The distribution of the input text , i.e., the
+underlying distribution that x1...xk are from.
+3. The label space , i.e., the space covered by
+y1...yk.
+4. The format—speciﬁcally, the use of input-
+label pairing as the format.
+As Section 4 does for the input-label mapping,
+we design a series of variants of the demonstrations
+that quantify the impact of each aspect in isolation
+(Section 5.1–5.3). We then additionally discuss the
+trend of the models meta-trained with an in-context
+learning objective (Section 5.4). For all experi-
+ments, models are evaluated on ﬁve classiﬁcation\n\nDirect MetaICL Channel MetaICL Direct GPT-J Channel GPT-J
+25
+30
+35
+40
+45
+50
+55
+60Macro-F1 (%)
+Classification
+Direct MetaICL Channel MetaICL Direct GPT-J Channel GPT-J
+25
+30
+35
+40
+45
+50
+55
+60Accuracy (%)
+Multi-choice
+■ Gold labels
+■ Random labels
+■ OOD + Random labels
+■ No demonstrations
+F: Format
+L: Label space
+I: Input distribution
+M: Input-Label Mapping
+F
+
+
+
+
+L
+
+
+
+
+I
+
+
+
+
+M
+
+
+
+
+Figure 8: Impact of the distribution of the inputs. Evaluated in classiﬁcation (top) and multi-choice (bottom). The
+impact of the distribution of the input text can be measured by comparing■ and ■. The gap is substantial, with an
+exception in Direct MetaICL (discussion in Section 5.1).
+and four multi-choice datasets as in Section 4.2.
+See Appendix B and Table 4 for implementation
+details and example demonstrations, respectively.
+5.1 Impact of the distribution of the input
+text
+We experiment with OOD demonstrations which
+include out-of-distribution (OOD) text instead of
+the inputs from unlabeled training data. Specif-
+ically, a set of k sentences{xi,rand}k
+i=1 are ran-
+domly sampled from an external corpus, and re-
+place x1...xk in the demonstrations. This variant
+assesses the impact of the distribution of the input
+text, while keeping the label space and the format
+of the demonstrations.
+Results. Figure 8 shows that using out-of-
+distribution inputs instead of the inputs from the
+training data signiﬁcantly drops the performance
+when Channel MetaICL, Direct GPT-J or Channel
+GPT-J are used, both in classiﬁcation and multi-
+choice, by 3–16% in absolute. In the case of Di-
+rect GPT-J in multi-choice, it is even signiﬁcantly
+worse than no demonstrations. Direct MetaICL
+is an exception, which we think is the effect of
+meta-training (discussion in Section 5.4).
+This suggests that in-distribution inputs in the
+demonstrations substantially contribute to perfor-
+mance gains. This is likely because conditioning on
+the in-distribution text makes the task closer to lan-
+guage modeling, since the LM always conditioned
+on the in-distribution text during training.
+5.2 Impact of the label space
+We also experiment with demonstrations w/ ran-
+dom English words that use random English
+words as labels for all k pairs. Speciﬁcally, we
+sample a random subset of English words Crand
+where|Crand|=|C|, and randomly pair ˜yi∈Crand
+with xi. This variant assesses the impact of the
+label space, while keeping the distribution of the
+input text and the format of the demonstrations.
+Results. Based on Figure 9, direct models and
+channel models exhibit different patterns. With di-
+rect models, the performance gap between using
+random labels within the label space and using ran-
+dom English words is signiﬁcant, ranging between
+5–16% absolute. This indicates that conditioning
+on the label space signiﬁcantly contributes to per-
+formance gains. This is true even for multi-choice
+tasks where there is no ﬁxed set of labels—we
+hypothesize that multi-choice tasks still do have
+a particular distribution of the choices (e.g., ob-
+jects like “Bolts” or “Screws” in the OpenBookQA
+dataset) that the model uses.
+On the other hand, removing the output space
+does not lead to signiﬁcant drop in the channel
+models: there is 0–2% drop in absolute, or some-
+times even an increase. We hypothesize that this is
+because the channel models only condition on the
+labels, and thus are not beneﬁting from knowing
+the label space. This is in contrast to direct models
+which must generate the correct labels.
+5.3 Impact of input-label pairing
+Section 5.1 and 5.2 focus on variants which keep
+the format of the demonstrations as much as possi-
+ble. This section explores variants that change the
+format. While there are many aspects of the format,
+we make minimal modiﬁcations to remove the pair-
+ings of inputs to labels. Speciﬁcally, we evaluate
+demonstrations with no labels where the LM is\n\nDirect MetaICL Channel MetaICL Direct GPT-J Channel GPT-J
+25
+30
+35
+40
+45
+50
+55
+60Macro-F1 (%)
+Classification
+Direct MetaICL Channel MetaICL Direct GPT-J Channel GPT-J
+25
+30
+35
+40
+45
+50
+55
+60Accuracy (%)
+Multi-choice
+■ Gold labels
+■ Random labels
+■ Random English words
+■ No demonstrations
+F: Format
+L: Label space
+I: Input distribution
+M: Input-Label Mapping
+F
+
+
+
+
+L
+
+
+
+
+I
+
+
+
+
+M
+
+
+
+
+Figure 9: Impact of the label space. Evaluated in classiﬁcation (top) and multi-choice (bottom). The impact of
+the label space can be measured by comparing ■ and ■. The gap is signiﬁcant in the direct models but not in the
+channel models (discussion in Section 5.2).
+Direct MetaICL Channel MetaICL Direct GPT-J Channel GPT-J
+25
+30
+35
+40
+45
+50
+55
+60Macro-F1 (%)
+Classification
+Direct MetaICL Channel MetaICL Direct GPT-J Channel GPT-J
+25
+30
+35
+40
+45
+50
+55
+60Accuracy (%)
+Multi-choice
+■ Gold labels
+■ Random labels
+■ OOD + Random labels
+■ Random labels only
+■ Random English words
+■ No labels
+■ No demonstrations
+F: Format
+L: Label space
+I: Input distribution
+M: Input-Label Mapping
+F
+
+
+
+
+
+
+
+L
+
+
+
+
+
+
+
+I
+
+
+
+
+
+
+
+M
+
+
+
+
+
+
+
+Figure 10: Impact of the format, i.e., the use of the input-label pairs. Evaluated in classiﬁcation (top) and multi-
+choice (bottom). Variants of demonstrations without keeping the format ( ■ and ■) are overall not better than no
+demonstrations (■). Keeping the format is especially signiﬁcant when it is possible to achieve substantial gains
+with the label space but without the inputs (■ vs. ■ in Direct MetaICL), or with the input distribution but without
+the labels (■ vs. ■ in Channel MetaICL and Channel GPT-J). More discussion in Section 5.3.
+conditioned on the concatenation of x1...xk, and
+demonstrations with labels onlywhere the LM is
+conditioned on the concatenation of y1...yk. These
+ablations provide the no-format counterparts of the
+‘demonstrations with random English words’ and
+‘demonstrations with OOD inputs’, respectively.
+Results. Based on Figure 10, removing the for-
+mat is close to or worse than no demonstrations,
+indicating the importance of the format. This is
+likely because conditioning on a sequence of input-
+label pairs triggers the model to mimic the overall
+format and complete the new example as expected
+when the test input is given.
+More interestingly, keeping the format plays a
+signiﬁcant role in retaining a large portion of per-
+formance gains by only using the inputs or only
+using the labels. For instance, with Direct MetaICL,
+it is possible to retain 95% and 82% of improve-
+ments from in-context learning (demonstrations
+with gold labels) by simply sampling random sen-
+tences from a corpus and randomly pairing them
+with the label set (■ in Figure 10) in classiﬁcation
+and multi-choice, respectively. Similarly, with the
+channel models, it is possible to retain 82%, 87%,
+86% and 75% of improvements from in-context
+learning by simply pairing each input from the un-
+labeled training data with a random English word
+(■ in Figure 10) in MetaICL classiﬁcation, GPT-
+J classiﬁcation, MetaICL multi-choice and GPT-J
+multi-choice, respectively. For all of these cases,
+removing inputs instead of using OOD inputs, or
+removing labels instead of using random English
+words is signiﬁcantly worse, indicating thatkeep-
+ing the format of the input-label pairs is key.
+5.4 Impact of meta-training
+Different from other models, MetaICL is trained
+with an in-context learning objective, in line with\n\nrecent work that uses multi-task training on a
+large collection of supervised datasets (called meta-
+training) for generalization to new tasks (Agha-
+janyan et al., 2021; Khashabi et al., 2020; Wei
+et al., 2022a; Sanh et al., 2022). We aim to better
+understand the role of this meta-training in relation
+with our ﬁndings by closely examining the result of
+MetaICL. In particular, we observe that the patterns
+we see so far are signiﬁcantly more evident with
+MetaICL than with other models. For instance, the
+ground truth input-label mapping matters even less,
+and keeping the format of the demonstrations mat-
+ters even more. There is nearly zero inﬂuence of
+the input-label mapping and the input distribution
+in Direct MetaICL, and the input-label mapping
+and the output space in Channel MetaICL.
+Based on this observation, we hypothesize that
+meta-training encourages the model to exclu-
+sively exploit simpler aspects of the demonstra-
+tions and to ignore others. This is based on our
+intuition that (1) the input-label mapping is likely
+harder to exploit, (2) the format is likely easier to
+exploit, and (3) the space of the text that the model
+is trained to generate is likely easier to exploit than
+the space of the text that the model conditions on.8
+6 Discussion & Conclusion
+In this paper, we study the role of the demonstra-
+tions with respect to the success of in-context learn-
+ing. We ﬁnd that the ground truth input-label map-
+ping in the demonstrations matters signiﬁcantly
+less than one might think—replacing gold labels
+with random labels in the demonstrations only
+marginally lowers the performance. We then iden-
+tify a series of aspects in the demonstrations and
+examine which aspect actually contributes to per-
+formance gains. Results reveal that (1) gains are
+mainly coming from independent speciﬁcation of
+the input space and the label space, (2) the models
+can still retain up to 95% of performance gains by
+using either the inputs only or the label set only if
+the right format is used, and (3) meta-training with
+an in-context learning objective magniﬁes these
+trends. Together, our ﬁndings lead to a set of
+broader indications about in-context learning, as
+well as avenues for future work.
+Does the model learn at test time? If we take
+a strict deﬁnition of learning: capturing the input-
+8That is, the direct model exploits the label space better
+than the input distribution, and the channel model exploits the
+input distribution better than the label space.
+label correspondence given in the training data,
+then our ﬁndings suggest that LMs do not learn
+new tasks at test time. Our analysis shows that the
+model may ignore the task deﬁned by the demon-
+strations and instead use prior from pretraining.
+However, learning a new task can be interpreted
+more broadly: it may include adapting to speciﬁc
+input and label distributions and the format sug-
+gested by the demonstrations, and ultimately get-
+ting to make a prediction more accurately. With
+this deﬁnition of learning, the model does learn
+the task from the demonstrations. Our experiments
+indicate that the model does make use of aspects of
+the demonstrations and achieve performance gains.
+Capacity of LMs. The model performs a down-
+stream task without relying on the input-label corre-
+spondence from the demonstrations. This suggests
+that the model has learned the (implicit notion of)
+input-label correspondence from the language mod-
+eling objective alone, e.g., associating a positive
+review with the word ‘positive’. This is in line
+with Reynolds and McDonell (2021) who claim
+that the demonstrations are for task location and
+the intrinsic ability to perform the task is obtained
+at pretraining time.9
+On one hand, this suggests that the language
+modeling objective has led to great zero-shot ca-
+pacity, even if it is not always evident from the
+naive zero-shot accuracy. On the other hand, this
+suggests that in-context learning may not work on
+a task whose input-label correspondence is not al-
+ready captured in the LM. This leads to the research
+question of how to make progress in NLP problems
+that in-context learning does not solve: whether
+we need a better way of extracting the input-label
+mappings that are already stored in the LM, a bet-
+ter variant of the LM objective that learns a wider
+range of task semantics, or explicit supervision
+through ﬁne-tuning on the labeled data.
+Connection to instruction-following models.
+Prior work has found it promising to train the model
+that reads the natural language description of the
+task (called instructions) and performs a new task
+at inference (Mishra et al., 2021b; Efrat and Levy,
+2020; Wei et al., 2022a; Sanh et al., 2022). We
+think the demonstrations and instructions largely
+have the same role to LMs, and hypothesize that our
+9However, while Reynolds and McDonell (2021) claims
+that the demonstrations are thus unnecessary, we think using
+the demonstrations is actually the most unambiguous and the
+easiest way to prompt the model to perform a task.\n\nﬁndings hold for instruction-following models: the
+instructions prompt the model to recover the capac-
+ity it already has, but do not supervise the model to
+learn novel task semantics. This has been partially
+veriﬁed by Webson and Pavlick (2022) who showed
+that the model performance does not degrade much
+with irrelevant or misleading instructions. We leave
+more analysis on instruction-following models for
+future work.
+Signiﬁcantly improved zero-shot performance.
+One of our key ﬁndings is that it is possible to
+achieve nearly k-shot performance without using
+any labeled data, by simply pairing each unlabeled
+input with a random label and using it as the demon-
+strations. This means our zero-shot baseline level
+is signiﬁcantly higher than previously thought.10
+Future work can further improve the zero-shot per-
+formance with relaxed assumptions in access to the
+unlabeled training data.
+Limitation
+Effect of types of tasks and datasets. This pa-
+per focuses on the tasks from established NLP
+benchmarks that have real natural language inputs.
+Synthetic tasks with more limited inputs may actu-
+ally use the ground truth labels more, as observed
+by Rong (2021).
+We report macro-level analysis by examining the
+average performance over multiple NLP datasets,
+but different datasets may behave differently. Ap-
+pendix C.2 discusses this aspect, including ﬁnd-
+ings that there are larger gaps between using the
+ground truth labels and using the random labels
+in some dataset-model pairs (e.g., in the most
+extreme case, nearly 14% absolute on the ﬁnan-
+cial_phrasebank dataset with GPT-J). Since the ﬁrst
+version of our paper, Kim et al. (2022) showed
+that using negated labels substantially lowers the
+performance in classiﬁcation.11 We believe it is
+important to understand to what extend the model
+needs the ground truth labels to successfully per-
+form in-context learning.
+Extensions to generation. Our experiments are
+limited to classiﬁcation and multi-choice tasks. We
+hypothesize that ground truth output may not be
+10We take the perspective that using the unlabeled training
+data is permitted (Kodirov et al., 2015; Wang et al., 2019b;
+Schick and Schütze, 2021).
+11Note that Kim et al. (2022) estimate the random label per-
+formance by interpolating with the performance using negated
+labels, while our paper samples the random labels at uniform.
+necessary for in-context learning in the open-set
+tasks such as generation, but leave this to future
+work. Extending of our experiments to such tasks
+is not trivial, because it requires a variation of the
+output which has incorrect input-output correspon-
+dence while keeping the correct output distribution
+(which is important based on our analysis in Sec-
+tion 5).
+Since the ﬁrst version of our paper, Madaan and
+Yazdanbakhsh (2022) conducted a similar analy-
+sis with the chain of thought prompting (Wei et al.,
+2022b) which generates a rationale to perform com-
+plex tasks such as math problems. Madaan and
+Yazdanbakhsh (2022) show that, while simply us-
+ing a random rationale in the demonstrations (e.g.,
+pairing with a rationale from a different example)
+signiﬁcantly degrades the performance, other types
+of counterfactual rationales (e.g., wrong equations)
+do not degrade the performance as much as we
+thought. We refer to Madaan and Yazdanbakhsh
+(2022) for more discussions on what aspects of the
+rationale matter or do not matter.
+Acknowledgements
+We thank Gabriel Ilharco, Julian Michael, Oﬁr
+Press, UW NLP members and anonymous review-
+ers for their comments in the paper. This research
+was supported by NSF IIS-2044660, ONR N00014-
+18-1-2826, a Sloan fellowship and gifts from AI2.
+References
+Armen Aghajanyan, Anchit Gupta, Akshat Shrivas-
+tava, Xilun Chen, Luke Zettlemoyer, and Sonal
+Gupta. 2021. Muppet: Massive multi-task rep-
+resentations with pre-ﬁnetuning. arXiv preprint
+arXiv:2101.11038.
+Mikel Artetxe, Shruti Bhosale, Naman Goyal, Todor
+Mihaylov, Myle Ott, Sam Shleifer, Xi Victoria Lin,
+Jingfei Du, Srinivasan Iyer, Ramakanth Pasunuru,
+et al. 2021. Efﬁcient large scale language mod-
+eling with mixtures of experts. arXiv preprint
+arXiv:2112.10684.
+Roy Bar-Haim, Ido Dagan, Bill Dolan, Lisa Ferro,
+Danilo Giampiccolo, Bernardo Magnini, and Idan
+Szpektor. 2006. The second pascal recognising tex-
+tual entailment challenge. In Proceedings of the sec-
+ond PASCAL challenges workshop on recognising
+textual entailment.
+Francesco Barbieri, Jose Camacho-Collados, Luis Es-
+pinosa Anke, and Leonardo Neves. 2020. TweetE-
+val: Uniﬁed benchmark and comparative evaluation
+for tweet classiﬁcation. In Findings of EMNLP.\n\nLuisa Bentivogli, Peter Clark, Ido Dagan, and Danilo
+Giampiccolo. 2009. The ﬁfth pascal recognizing tex-
+tual entailment challenge. In TAC.
+Tom Brown, Benjamin Mann, Nick Ryder, Melanie
+Subbiah, Jared D Kaplan, Prafulla Dhariwal,
+Arvind Neelakantan, Pranav Shyam, Girish Sastry,
+Amanda Askell, Sandhini Agarwal, Ariel Herbert-
+V oss, Gretchen Krueger, Tom Henighan, Rewon
+Child, Aditya Ramesh, Daniel Ziegler, Jeffrey Wu,
+Clemens Winter, Chris Hesse, Mark Chen, Eric
+Sigler, Mateusz Litwin, Scott Gray, Benjamin Chess,
+Jack Clark, Christopher Berner, Sam McCandlish,
+Alec Radford, Ilya Sutskever, and Dario Amodei.
+2020. Language models are few-shot learners. In
+NeurIPS.
+Michael Chen, Mike D’Arcy, Alisa Liu, Jared Fer-
+nandez, and Doug Downey. 2019. CODAH: An
+adversarially-authored question answering dataset
+for common sense. In Proceedings of the 3rd Work-
+shop on Evaluating Vector Space Representations
+for NLP.
+Yanda Chen, Ruiqi Zhong, Sheng Zha, George Karypis,
+and He He. 2021. Meta-learning via language model
+in-context tuning. arXiv preprint arXiv:2110.07814.
+Peter Clark, Isaac Cowhey, Oren Etzioni, Tushar Khot,
+Ashish Sabharwal, Carissa Schoenick, and Oyvind
+Tafjord. 2018. Think you have solved question an-
+swering? try arc, the ai2 reasoning challenge. ArXiv.
+Ido Dagan, Oren Glickman, and Bernardo Magnini.
+2005. The pascal recognising textual entailment
+challenge. In Machine Learning Challenges Work-
+shop.
+Ona de Gibert, Naiara Perez, Aitor García-Pablos, and
+Montse Cuadros. 2018. Hate Speech Dataset from a
+White Supremacy Forum. In Proceedings of the 2nd
+Workshop on Abusive Language Online (ALW2).
+Marie-Catherine de Marneffe, Mandy Simons, and Ju-
+dith Tonhauser. 2019. The commitmentbank: Inves-
+tigating projection in naturally occurring discourse.
+Proceedings of Sinn und Bedeutung.
+Jacob Devlin, Ming-Wei Chang, Kenton Lee, and
+Kristina Toutanova. 2019. BERT: Pre-training of
+deep bidirectional transformers for language under-
+standing. In NAACL.
+T. Diggelmann, Jordan L. Boyd-Graber, Jannis Bu-
+lian, Massimiliano Ciaramita, and Markus Leippold.
+2020. Climate-fever: A dataset for veriﬁcation of
+real-world climate claims. ArXiv.
+William B. Dolan and Chris Brockett. 2005. Automati-
+cally constructing a corpus of sentential paraphrases.
+In Proceedings of the Third International Workshop
+on Paraphrasing (IWP2005).
+Avia Efrat and Omer Levy. 2020. The turking test: Can
+language models understand instructions? arXiv
+preprint arXiv:2010.11982.
+L Gao, S Biderman, S Black, L Golding, T Hoppe,
+C Foster, J Phang, H He, A Thite, N Nabeshima,
+et al. 2021. The pile: an 800gb dataset of diverse
+text for language modeling 2020. arXiv preprint
+arXiv:2101.00027.
+Danilo Giampiccolo, Bernardo Magnini, Ido Dagan,
+and Bill Dolan. 2007. The third pascal recognizing
+textual entailment challenge. In Proceedings of the
+ACL-PASCAL workshop on textual entailment and
+paraphrasing.
+Andrew Gordon, Zornitsa Kozareva, and Melissa
+Roemmele. 2012. SemEval-2012 task 7: Choice
+of plausible alternatives: An evaluation of common-
+sense causal reasoning. In The First Joint Confer-
+ence on Lexical and Computational Semantics (Se-
+mEval).
+Ari Holtzman, Peter West, Vered Schwartz, Yejin Choi,
+and Luke Zettlemoyer. 2021. Surface form compe-
+tition: Why the highest probability answer isn’t al-
+ways right. In EMNLP.
+Daniel Khashabi, Sewon Min, Tushar Khot, Ashish
+Sabharwal, Oyvind Tafjord, Peter Clark, and Han-
+naneh Hajishirzi. 2020. UniﬁedQA: Crossing for-
+mat boundaries with a single qa system. In Findings
+of EMNLP.
+Tushar Khot, Peter Clark, Michal Guerquin, Peter
+Jansen, and Ashish Sabharwal. 2020. Qasc: A
+dataset for question answering via sentence compo-
+sition. In AAAI.
+Junyeob Kim, Hyuhng Joon Kim, Hyunsoo Cho,
+Hwiyeol Jo, Sang-Woo Lee, Sang-goo Lee,
+Kang Min Yoo, and Taeuk Kim. 2022. Ground-truth
+labels matter: A deeper look into input-label demon-
+strations. arXiv preprint arXiv:2205.12685.
+Elyor Kodirov, Tao Xiang, Zhenyong Fu, and Shao-
+gang Gong. 2015. Unsupervised domain adaptation
+for zero-shot learning. In Proceedings of the IEEE
+international conference on computer vision.
+Hector J. Levesque, Ernest Davis, and Leora Morgen-
+stern. 2012. The winograd schema challenge. In
+Proceedings of the Thirteenth International Confer-
+ence on Principles of Knowledge Representation
+and Reasoning.
+Mike Lewis, Yinhan Liu, Naman Goyal, Mar-
+jan Ghazvininejad, Abdelrahman Mohamed, Omer
+Levy, Ves Stoyanov, and Luke Zettlemoyer.
+2020. BART: Denoising sequence-to-sequence pre-
+training for natural language generation, translation,
+and comprehension. In ACL.
+Quentin Lhoest, Albert Villanova del Moral, Yacine
+Jernite, Abhishek Thakur, Patrick von Platen, Suraj
+Patil, Julien Chaumond, Mariama Drame, Julien Plu,
+Lewis Tunstall, Joe Davison, Mario Šaško, Gun-
+jan Chhablani, Bhavitvya Malik, Simon Brandeis,
+Teven Le Scao, Victor Sanh, Canwen Xu, Nicolas
+Patry, Angelina McMillan-Major, Philipp Schmid,\n\nSylvain Gugger, Clément Delangue, Théo Matus-
+sière, Lysandre Debut, Stas Bekman, Pierric Cis-
+tac, Thibault Goehringer, Victor Mustar, François
+Lagunas, Alexander Rush, and Thomas Wolf. 2021.
+Datasets: A community library for natural language
+processing. In EMNLP: System Demonstrations.
+Jiachang Liu, Dinghan Shen, Yizhe Zhang, Bill Dolan,
+Lawrence Carin, and Weizhu Chen. 2021. What
+makes good in-context examples for gpt- 3? arXiv
+preprint arXiv:2101.06804.
+Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Man-
+dar Joshi, Danqi Chen, Omer Levy, Mike Lewis,
+Luke Zettlemoyer, and Veselin Stoyanov. 2019.
+Roberta: A robustly optimized bert pretraining ap-
+proach. arXiv preprint arXiv:1907.11692.
+Robert L Logan IV , Ivana Balaževic, Eric Wallace,
+Fabio Petroni, Sameer Singh, and Sebastian Riedel.
+2021. Cutting down on prompts and parameters:
+Simple few-shot learning with language models.
+arXiv preprint arXiv:2106.13353.
+Yao Lu, Max Bartolo, Alastair Moore, Sebastian
+Riedel, and Pontus Stenetorp. 2021. Fantastically
+ordered prompts and where to ﬁnd them: Overcom-
+ing few-shot prompt order sensitivity.arXiv preprint
+arXiv:2104.08786.
+Aman Madaan and Amir Yazdanbakhsh. 2022. Text
+and patterns: For effective chain of thought, it takes
+two to tango. arXiv preprint arXiv:2209.07686.
+Pekka Malo, Ankur Sinha, Pekka Korhonen, Jyrki Wal-
+lenius, and Pyry Takala. 2014. Good debt or bad
+debt: Detecting semantic orientations in economic
+texts. J. Assoc. Inf. Sci. Technol.
+Marco Marelli, Stefano Menini, Marco Baroni, Luisa
+Bentivogli, Raffaella Bernardi, and Roberto Zampar-
+elli. 2014. A SICK cure for the evaluation of com-
+positional distributional semantic models. In LREC.
+Clara H. McCreery, Namit Katariya, Anitha Kannan,
+Manish Chablani, and Xavier Amatriain. 2020. Ef-
+fective transfer learning for identifying similar ques-
+tions: Matching user questions to covid-19 faqs.
+In Proceedings of the 26th ACM SIGKDD Interna-
+tional Conference on Knowledge Discovery & Data
+Mining.
+Todor Mihaylov, Peter Clark, Tushar Khot, and Ashish
+Sabharwal. 2018. Can a suit of armor conduct elec-
+tricity? a new dataset for open book question answer-
+ing. In EMNLP.
+Sewon Min, Mike Lewis, Hannaneh Hajishirzi, and
+Luke Zettlemoyer. 2021a. Noisy channel language
+model prompting for few-shot text classiﬁcation.
+arXiv preprint arXiv:2108.04106.
+Sewon Min, Mike Lewis, Luke Zettlemoyer, and Han-
+naneh Hajishirzi. 2021b. MetaICL: Learning to
+learn in context. arXiv preprint.
+Swaroop Mishra, Daniel Khashabi, Chitta Baral, Yejin
+Choi, and Hannaneh Hajishirzi. 2021a. Refram-
+ing instructional prompts to gptk’s language. arXiv
+preprint arXiv:2109.07830.
+Swaroop Mishra, Daniel Khashabi, Chitta Baral, and
+Hannaneh Hajishirzi. 2021b. Cross-task generaliza-
+tion via natural language crowdsourcing instructions.
+arXiv preprint arXiv:2104.08773.
+Ioannis Mollas, Zoe Chrysopoulou, Stamatis Karlos,
+and Grigorios Tsoumakas. 2020. Ethos: an online
+hate speech detection dataset. ArXiv.
+Sebastian Nagel. 2016. CC-News. http:
+//web.archive.org/save/http:
+//commoncrawl.org/2016/10/
+news-dataset-available.
+Alec Radford, Jeffrey Wu, Rewon Child, David Luan,
+Dario Amodei, and Ilya Sutskever. 2019. Language
+models are unsupervised multitask learners. OpenAI
+blog.
+Colin Raffel, Noam Shazeer, Adam Roberts, Katherine
+Lee, Sharan Narang, Michael Matena, Yanqi Zhou,
+Wei Li, and Peter J Liu. 2020. Exploring the limits
+of transfer learning with a uniﬁed text-to-text trans-
+former. Journal of Machine Learning Research.
+Yasaman Razeghi, Robert L Logan IV , Matt Gardner,
+and Sameer Singh. 2022. Impact of pretraining term
+frequencies on few-shot reasoning. arXiv preprint
+arXiv:2202.07206.
+Laria Reynolds and Kyle McDonell. 2021. Prompt pro-
+gramming for large language models: Beyond the
+few-shot paradigm. In Extended Abstracts of the
+2021 CHI Conference on Human Factors in Com-
+puting Systems.
+Frieda Rong. 2021. Extrapolating to unnatu-
+ral language processing with gpt-3’s in-context
+learning: The good, the bad, and the myste-
+rious. https://ai.stanford.edu/blog/
+in-context-learning.
+Ohad Rubin, Jonathan Herzig, and Jonathan Berant.
+2021. Learning to retrieve prompts for in-context
+learning. arXiv preprint arXiv:2112.08633.
+Victor Sanh, Albert Webson, Colin Raffel, Stephen H.
+Bach, Lintang Sutawika, Zaid Alyafeai, Antoine
+Chafﬁn, Arnaud Stiegler, Teven Le Scao, Arun
+Raja, Manan Dey, M Saiful Bari, Canwen Xu, Ur-
+mish Thakker, Shanya Sharma, Eliza Szczechla,
+Taewoon Kim, Gunjan Chhablani, Nihal Nayak,
+Debajyoti Datta, Jonathan Chang, Mike Tian-Jian
+Jiang, Han Wang, Matteo Manica, Sheng Shen,
+Zheng Xin Yong, Harshit Pandey, Rachel Bawden,
+Thomas Wang, Trishala Neeraj, Jos Rozen, Ab-
+heesht Sharma, Andrea Santilli, Thibault Fevry, Ja-
+son Alan Fries, Ryan Teehan, Stella Biderman, Leo
+Gao, Tali Bers, Thomas Wolf, and Alexander M.
+Rush. 2022. Multitask prompted training enables
+zero-shot task generalization. In ICLR.\n\nTimo Schick and Hinrich Schütze. 2021. It’s not just
+size that matters: Small language models are also
+few-shot learners. In NAACL-HLT.
+Emily Sheng and David Uthus. 2020. Investigating so-
+cietal biases in a poetry composition system. In Pro-
+ceedings of the Second Workshop on Gender Bias in
+Natural Language Processing.
+Kai Sun, Dian Yu, Jianshu Chen, Dong Yu, Yejin Choi,
+and Claire Cardie. 2019. DREAM: A challenge data
+set and models for dialogue-based reading compre-
+hension. TACL.
+Oyvind Tafjord, Peter Clark, Matt Gardner, Wen-tau
+Yih, and Ashish Sabharwal. 2019a. Quarel: A
+dataset and models for answering questions about
+qualitative relationships. In AAAI.
+Oyvind Tafjord, Matt Gardner, Kevin Lin, and Peter
+Clark. 2019b. QuaRTz: An open-domain dataset of
+qualitative relationship questions. In EMNLP.
+Alon Talmor, Jonathan Herzig, Nicholas Lourie, and
+Jonathan Berant. 2019. Commonsenseqa: A ques-
+tion answering challenge targeting commonsense
+knowledge. In NAACL-HLT.
+Alex Wang, Yada Pruksachatkun, Nikita Nangia,
+Amanpreet Singh, Julian Michael, Felix Hill, Omer
+Levy, and Samuel Bowman. 2019a. Superglue: A
+stickier benchmark for general-purpose language un-
+derstanding systems. In NeurIPS.
+Alex Wang, Amanpreet Singh, Julian Michael, Felix
+Hill, Omer Levy, and Samuel R Bowman. 2018.
+Glue: A multi-task benchmark and analysis plat-
+form for natural language understanding. In Black-
+boxNLP Workshop: Analyzing and Interpreting Neu-
+ral Networks for NLP.
+Ben Wang and Aran Komatsuzaki. 2021. GPT-
+J-6B: A 6 Billion Parameter Autoregressive
+Language Model. https://github.com/
+kingoflolz/mesh-transformer-jax.
+Wei Wang, Vincent W Zheng, Han Yu, and Chunyan
+Miao. 2019b. A survey of zero-shot learning: Set-
+tings, methods, and applications. ACM Transactions
+on Intelligent Systems and Technology (TIST).
+Albert Webson and Ellie Pavlick. 2022. Do prompt-
+based models really understand the meaning of their
+prompts? In NAACL-HLT.
+Jason Wei, Maarten Bosma, Vincent Y Zhao, Kelvin
+Guu, Adams Wei Yu, Brian Lester, Nan Du, An-
+drew M Dai, and Quoc V Le. 2022a. Finetuned lan-
+guage models are zero-shot learners. In ICLR.
+Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten
+Bosma, Ed Chi, Quoc Le, and Denny Zhou. 2022b.
+Chain of thought prompting elicits reasoning in large
+language models. arXiv preprint arXiv:2201.11903.
+Sang Michael Xie, Aditi Raghunathan, Percy Liang,
+and Tengyu Ma. 2022. An explanation of in-context
+learning as implicit bayesian inference. In ICLR.
+Qinyuan Ye, Bill Yuchen Lin, and Xiang Ren. 2021.
+Crossﬁt: A few-shot learning challenge for cross-
+task generalization in nlp. In EMNLP.
+Tony Z Zhao, Eric Wallace, Shi Feng, Dan Klein, and
+Sameer Singh. 2021. Calibrate before use: Improv-
+ing few-shot performance of language models. In
+ICML.\n\nA Full Datasets
+We include 26 datasets as follows: ﬁ-
+nancial_phrasebank (Malo et al., 2014),
+poem_sentiment (Sheng and Uthus, 2020),
+medical_questions_pairs (McCreery et al., 2020),
+glue-mrpc (Dolan and Brockett, 2005), glue-
+wnli (Levesque et al., 2012), climate_fever (Diggel-
+mann et al., 2020), glue-rte (Dagan et al., 2005;
+Bar-Haim et al., 2006; Giampiccolo et al.,
+2007; Bentivogli et al., 2009), superglue-
+cb (de Marneffe et al., 2019), sick (Marelli et al.,
+2014) , hate_speech18 (de Gibert et al., 2018),
+ethos-national_origin (Mollas et al., 2020), ethos-
+race (Mollas et al., 2020), ethos-religion (Mollas
+et al., 2020), tweet_eval-hate (Barbieri et al., 2020),
+tweet_eval-stance_atheism (Barbieri et al., 2020),
+tweet_eval-stance_feminist (Barbieri et al., 2020),
+quarel (Tafjord et al., 2019a), openbookqa (Mi-
+haylov et al., 2018), qasc (Khot et al., 2020), com-
+monsense_qa (Talmor et al., 2019), ai2_arc (Clark
+et al., 2018), codah (Chen et al., 2019), superglue-
+copa (Gordon et al., 2012), dream (Sun et al.,
+2019), quartz-with_knowledge (Tafjord et al.,
+2019b), quartz-no_knowledge (Tafjord et al.,
+2019b). The choice of datasets is made following
+low-resource datasets in Min et al. (2021b), with
+the exact same set of k-shot train data using 5
+random seeds. We use the HuggingFace version
+of the data (Lhoest et al., 2021) and use the
+development data for evaluation, following Ye
+et al. (2021). See Table 2 for statistics.
+B Experimental Details
+Example template We follow Ye et al. (2021);
+Min et al. (2021b); Logan IV et al. (2021) in us-
+ing the minimal format to transform the input to a
+sequence (e.g. a concatenation of multiple inputs)
+and using the label words from each dataset as it is.
+We also explore manual templates taken from prior
+work (Holtzman et al., 2021; Zhao et al., 2021) as
+reported in Section 4.2, although we ﬁnd that using
+these templates is not consistently better than using
+minimal templates. We thus run main experiments
+with minimal templates. Example templates are
+provided in Table 3.
+Format of the demonstrations We follow the
+standard of each model for formatting the demon-
+strations, either from exploration in prior work or
+the example code provided in the ofﬁcial tutorial.
+For GPT-2, we separate the input and the label,
+Dataset # Train # Eval
+Task category: Sentiment analysis
+ﬁnancial_phrasebank 1,811 453
+poem_sentiment 892 105
+Task category: Paraphrase detection
+medical_questions_pairs 2,438 610
+glue-mrpc 3,668 408
+Task category: Natural language inference
+glue-wnli 635 71
+climate_fever 1,228 307
+glue-rte 2,490 277
+superglue-cb 250 56
+sick 4,439 495
+Task category: Hate speech detection
+hate_speech18 8,562 2,141
+ethos-national_origin 346 87
+ethos-race 346 87
+ethos-religion 346 87
+tweet_eval-hate 8,993 999
+tweet_eval-stance_atheism 461 52
+tweet_eval-stance_feminist 597 67
+Task category: Question answering
+quarel 1,941 278
+openbookqa 4,957 500
+qasc 8,134 926
+commonsense_qa 9,741 1,221
+ai2_arc 1,119 299
+Task category: Sentence completion
+codah 1665 556
+superglue-copa 400 100
+dream 6116 2040
+quartz-with_knowledge 2696 384
+quartz-no_knowledge 2696 384
+Table 2: 26 datasets used for experiments, classiﬁed
+into 6 task categories. # Train and # Test indicate the
+number of training and test examples of the dataset.
+Note that # train is based on the original training dataset
+but we use k random samples for k-shot evaluation.
+and each demonstration example with a space. For
+MetaICL, GPT-J and GPT-3, we separate the input
+and the label with a newline (\n), and each demon-
+stration example with three newlines. For fairseq
+models, we use a newline to separate the input and
+the label as well as each demonstration example.
+Details in variants of the demonstrations For
+“demonstrations w/ a% accurate labels” ( 0 ≤
+a ≤100), we use k×a/100 correct pairs and
+k×(1−a/100) incorrect pairs in a random order,
+as described in Algorithm 1. For “OOD demon-
+strations”, we use CC-News (Nagel, 2016) as an
+external corpus. We consider the length of the text
+during sampling, so that sampled sentences have
+similar length to the test input. For “demonstrations
+with random English words”, we use pypi.org/
+project/english-words for the set of En-\n\nDirect
+GPT-2
+Channel
+GPT-2
+Direct
+MetaICL
+Channel
+MetaICL
+Direct
+GPT-J
+Channel
+GPT-J
+Direct
+fairseq 6.7B
+Channel
+fairseq 6.7B
+Direct
+fairseq 13B
+Channel
+fairseq 13B
+Direct
+GPT-3
+Channel
+GPT-3
+25
+30
+35
+40
+45
+50
+55
+60Macro-F1 (%)
+Classification
+No Demos Demos w/ gold labels Demos w/ random labels
+Direct
+GPT-2
+Channel
+GPT-2
+Direct
+MetaICL
+Channel
+MetaICL
+Direct
+GPT-J
+Channel
+GPT-J
+Direct
+fairseq 6.7B
+Channel
+fairseq 6.7B
+Direct
+fairseq 13B
+Channel
+fairseq 13B
+Direct
+GPT-3
+Channel
+GPT-3
+35
+40
+45
+50
+55
+60
+65
+70Accuracy (%)
+Multi-choice
+No Demos Demos w/ gold labels Demos w/ random labels
+Figure 11: Results of No-demonstration, Gold demonstration and Random demonstration on 3 classiﬁcation
+datasets (top) and 3 multi-choice datasets (bottom). Details in Section 4.1. This ﬁgure is for providing numbers
+that are comparable across models—full results with more datasets are reported in Figure 3.
+Algorithm 1 Forming the demonstrations with an
+accuracy of a%.
+1: procedure FORM DEMONS ({(xi, yi)}k
+i=1, a)
+2: D←[] // demonstration to be formed
+3: n←k×a/100 // number of correct pairs
+4: G←Sample(Range(1, k), n)
+5: for i∈Range(1, k) do
+6: if i∈Gthen // add correct pair
+7: D.append((xi, yi))
+8: else // add incorrect pair
+9: D.append((xi,Sample(C−yi)))
+10: return D
+glish words, which consists of 61,569 words.
+Table 4 provides a list of example demonstra-
+tions for each method used in Section 5.
+C More Experimental Results
+C.1 Gold labels vs. random labels
+Figure 11 shares the same interface as Figure 3, but
+all models are evaluated on 3 classiﬁcation and 3
+multi-choice datasets and are thus comparable to
+each other.
+C.2 Random labels from true distribution of
+labels & Task breakdown
+In Section 4, random labels are sampled from the
+label space from a uniform distribution. We ex-
+periment with another variant of demonstrations in
+the classiﬁcation tasks, where labels are randomly
+sampled from the true distribution of labels on the
+training data. This may have large impact if labels
+are far from uniform on the training data. Results
+indicate that performance drop from using gold
+labels is further reduced compared to using uni-
+formly random labels: with Channel MetaICL, the
+gap is reduced from 1.9% to 1.3% absolute, and
+with Channel GPT-J, the gap is reduced from 5.0%
+to 3.5% absolute.
+Figure 12 shows performance gap between using
+gold labels and using random labels per dataset. We
+ﬁnd that the trend that the gap is smaller than pre-
+viously thought is consistant across most datasets.
+Nonetheless, there are a few outlier datasets where
+performance gap is non-negligible, such as ﬁnan-
+cial_phrasebank and a few hate speech detection
+datasets. Future work may investigate on which
+tasks the model makes more use of the correctly
+paired training data.
+C.3 More variants of the demonstrations
+We explored demonstrations with a con-
+stant label where all labels in the demon-
+strations are replaced with a constant text,
+“ answer”. Speciﬁcally, a prediction is made via
+argmaxy∈CP (y|x1,answer...xk,answer, x).
+This can be viewed as another way to remove the
+impact of the label space while keeping the impact
+of the distribution of the input text. However,
+results are consistently worse than the results
+of demonstrations with random English labels.
+We think this is because constant labels actually
+change the format of the demonstrations, since
+they can be viewed as part of a separator between
+different demonstration examples.
+We also exploreddemonstrations with the test
+input where all inputs in the demonstrations are
+replaced with the test input, each paired with a ran-\n\ndom label. Speciﬁcally, a prediction is made via
+argmaxy∈CP (y|x,˜y1...x,˜yk, x), where ˜yi (1 ≤
+i≤k) is randomly sampled at uniform from C.
+This variant is seemingly a reasonable choice given
+that it satisﬁes the condition that the inputs in the
+demonstrations come from the same distribution
+as the test input (since they are identical), and us-
+ing random labels is as good as using gold labels.
+Nonetheless, we ﬁnd that this variant is signiﬁ-
+cantly worse than most other methods with demon-
+strations. We think this is because using the con-
+stant input for all demonstration example signiﬁ-
+cantly changes the format of the sequence, since the
+input can be viewed as part of a separator between
+different demonstration examples.\n\nfinancial_phrasebank
+tweet_eval-stance_feminist
+poem_sentiment-new
+superglue-cb
+ethos-national_origin
+tweet_eval-stance_atheism
+sick
+hate_speech18
+glue-wnli
+ethos-religion
+ethos-race
+codah quarel
+commonsense_qa
+medical_questions_pairs
+openbookqa
+tweet_eval-hate
+quartz-with_knowledge
+superglue-copa-new
+climate_fever
+qasc dream ai2_arc
+glue-mrpc
+quartz-no_knowledge
+glue-rte
+2
+1
+0
+1
+2
+3
+4
+5
+6
+7
+Performance drop (Channel MetaICL, uniform)
+financial_phrasebank
+superglue-cb
+poem_sentiment-new
+ethos-race
+sick
+tweet_eval-stance_feminist
+tweet_eval-hatehate_speech18ethos-religion
+glue-rte
+climate_fever
+ethos-national_origin
+glue-wnli
+quartz-with_knowledge
+commonsense_qa
+qasc
+quartz-no_knowledge
+openbookqa
+dream
+tweet_eval-stance_atheism
+ai2_arc
+superglue-copa-new
+medical_questions_pairs
+glue-mrpc
+quarel codah
+1
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+Performance drop (Channel GPT -J, uniform)
+tweet_eval-stance_feminist
+poem_sentiment-newfinancial_phrasebank
+tweet_eval-stance_atheism
+ethos-national_origin
+superglue-cbethos-religion
+glue-wnli
+sick codah
+climate_fever
+quarel
+tweet_eval-hate
+ethos-race
+commonsense_qa
+glue-mrpc
+hate_speech18
+medical_questions_pairs
+openbookqa
+quartz-with_knowledge
+superglue-copa-new
+qasc dream ai2_arc
+quartz-no_knowledge
+glue-rte
+2
+1
+0
+1
+2
+3
+4
+5
+Performance drop (Channel MetaICL, true distribution)
+sick
+poem_sentiment-new
+ethos-race
+tweet_eval-hate
+tweet_eval-stance_feminist
+financial_phrasebank
+hate_speech18
+tweet_eval-stance_atheism
+climate_fever
+ethos-national_origin
+glue-rte
+ethos-religion
+glue-wnli
+quartz-with_knowledge
+commonsense_qa
+qasc
+glue-mrpc
+quartz-no_knowledge
+openbookqa
+dream ai2_arc
+superglue-copa-new
+medical_questions_pairs
+quarel codah
+superglue-cb
+3
+2
+1
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+Performance drop (Channel GPT -J, true distribution)
+Figure 12: Performance gap from using the demonstrations with gold labels to using the demonstrations with
+random labels. Datasets are sorted in descending order. The top two ﬁgures use random labels that are sampled
+at uniform, with Channel MetaICL and Channel GPT-J, respectively. The bottom two ﬁgures use random labels
+that are sampled from a true distribution of labels on the training data, with Channel MetaICL and Channel GPT-J,
+respectively.\n\nDataset Type Example
+MRPC Minimal sentence 1: Cisco pared spending to compensate for sluggish sales . [SEP] sentence 2: In
+response to sluggish sales , Cisco pared spending . \n {equivalent|not_equivalent}
+Manual Cisco pared spending to compensate for sluggish sales . \n The question is: In response to
+sluggish sales , Cisco pared spending . True or False? \n The answer is:{True|False}
+RTE Minimal sentence 1: The girl was found in Drummondville. [SEP] sentence 2: Drummondville
+contains the girl. \n {entailment|not_entailment}
+Manual The girl was found in Drummondville. \n The question is: Drummondville contains the
+girl. True or False? \n The answer is:{True|False}
+Tweet_eval-hate Minimal The Truth about #Immigration \n {hate |non-hate}
+Manual Tweet: The Truth about #Immigration \n Sentiment: {against |favor}
+SICK Minimal sentence 1: A man is screaming. [SEP] sentence 2: A man is scared. \n
+{contradiction|entailment|neutral}
+Manual A man is screaming. \n The question is: A man is scared. True or False? \n The answer is:
+{False|True|Not sure}
+poem-sentiment Minimal willis sneered: \n {negative |no_impact|positive}
+Manual willis sneered: \n The sentiment is: {negative |no_impact|positive}
+OpenbookQA Minimal What creates a valley? \n {feet |rock|water|sand}
+Manual The question is: What creates a valley? \n The answer is: {feet |rock|water|sand}
+CommonsenseQA Minimal What blocks sunshine? \n {summer |park|desktop|sea|moon}
+Manual The question is: What blocks sunshine? \n The answer is: {summer |park|desktop|sea|moon}
+COPA Minimal Effect: I coughed. \n {Cause: I inhaled smoke. |Cause: I lowered my voice.}
+Manual I coughed because {I inhaled smoke. |I lowered my voice.}
+ARC Minimal Which biome has the most vegetation? \n {desert |forest|grassland|tundra}
+Manual The question is: Which biome has the most vegetation? \n The answer is: {desert|forest|
+grassland|tundra}
+Table 3: A list of minimal templates taken from Ye et al. (2021); Min et al. (2021b) and manual templates taken
+from Holtzman et al. (2021); Zhao et al. (2021). Details provided in Appendix B. See Figure 6 for discussion in
+empirical results. The input and the label are in the red text and in the blue text, respectively. Note that|is used to
+separate different options for the labels.
+Demos
+w/ gold labels
+(Format  Input distribution  Label space  Input-label mapping )
+Circulation revenue has increased by 5% in Finland and 4% in Sweden in 2008. \n positive
+Panostaja did not disclose the purchase price. \n neutral
+Demos
+w/ random labels
+(Format  Input distribution  Label space  Input-label mapping )
+Circulation revenue has increased by 5% in Finland and 4% in Sweden in 2008. \n neutral
+Panostaja did not disclose the purchase price. \n negative
+OOD Demos
+w/ random labels
+(Format  Input distribution Label space  Input-label mapping )
+Colour-printed lithograph. Very good condition. Image size: 15 x 23 1/2 inches. \n neutral
+Many accompanying marketing claims of cannabis products are often well-meaning. \n negative
+Demos
+w/ random English words
+(Format  Input distribution  Label space Input-label mapping )
+Circulation revenue has increased by 5% in Finland and 4% in Sweden in 2008. \n unanimity
+Panostaja did not disclose the purchase price. \n wave
+Demos
+w/o labels
+(Format Input distribution  Label space Input-label mapping )
+Circulation revenue has increased by 5% in Finland and 4% in Sweden in 2008.
+Panostaja did not disclose the purchase price.
+Demos
+labels only
+(Format Input distribution Label space  Input-label mapping )
+positive
+neutral
+Table 4: Example demonstrations when using methods in Section 5. The ﬁnancial_phrasebank dataset with C =
+{“positive”, “neutral”, “negative” }is used. Red text indicates the text is sampled from an external corpus; blue
+text indicates the labels are randomly sampled from the label set; purple text indicates a random English word.\n\nRethinking the Role of Demonstrations:
+What Makes In-Context Learning Work?
+Anonymous ACL submission
+We are glad that all reviewers ﬁnd that the001
+paper is novel (8jk5, LQ6N, 92YB, 7E5P), of002
+interest to the broader NLP community (LQ6N,003
+92YB, 7E5P), supported by solid experiments004
+(8jk5, LQ6N, 92YB, 7E5P), and well-written (8jk5,005
+LQ6N, 92YB). Reviewers gave comments on more006
+discussion, limitations and avenues for future work.007
+We will incorporate them in the next version of the008
+paper.1009
+Adding discussion on robustness of LMs (8jk5,010
+7E5P): We think the fact that LMs do not use011
+the input-label correspondence does not necessar-012
+ily mean that LMs are robust to other aspects of013
+the demonstration. Nonetheless, it will be an inter-014
+esting avenue for future work, given that LMs are015
+highly sensitive to small changes in the demonstra-016
+tions (??).017
+Adding discussion with respect to the model018
+size (8jk5): Absolute differences are similar019
+across different model sizes (Figure 3), but since020
+the large models have higher absolute performance,021
+the relative differences are larger with larger mod-022
+els.023
+When our ﬁndings hold or do not hold (8jk5):024
+We believe that the ﬁndings will hold only when025
+some notion of input-label correspondences are026
+already captured during pre-training—for tasks027
+whose input-label correspondences during pretrain-028
+ing is sparse, the demonstrations with random la-029
+bels are highly unlikely to work. This has been030
+shown by ? in a synthetic setup, and future work031
+can revisit this with more natural data.032
+Risk in applying in-context learning, Rec-033
+ommendation to practitioners (8jk5, LQ6N):034
+Since the models do not capture the correspondence035
+from the demonstrations, it is possible that models036
+are simply relying on some notation of input-label037
+correspondence during pre-training. Thus, apply-038
+ing in-context learning for problems that were not039
+1We answered reviewers’ questions on the OpenReview
+page, and address higher-level comments here.
+in the pretraining data would be potentially risky, 040
+and practitioners may want to collect the labeled 041
+data and ﬁne-tune the model. 042
+Where do the gains from demonstrations come 043
+from? (92YB): We think gains from demonstra- 044
+tions are mainly due to the speciﬁcation of the in- 045
+put distribution and the label space rather than the 046
+input-label correspondence, as Section 5 indicates. 047
+We will clarify this in the next version of the paper. 048
+Concrete answer to “why” using random labels 049
+keeps reasonable performance (LQ6N): We 050
+think it is highly likely to be because the model 051
+has been exposed to some notion of input-label cor- 052
+respondence during pre-training, so that the demon- 053
+strations play a role of triggering them at inference. 054
+Consideration when training large LMs 055
+(LQ6N): Due to compute limitations, we were 056
+not be able to provide recommendations that 057
+are empirically supported. Future work may 058
+investigate aspects of language model pretraining 059
+that affect the ﬁndings, including the pretraining 060
+data and the objective. 061
+Word ordering matters? (7E5P): We think it 062
+is an important avenue for future work. For this 063
+paper, we did not include it in our scope due to 064
+requiring multiple times more experiments. 065
+More task types, e.g., generation (7E5P): Ex- 066
+tending this work to generation tasks is not very 067
+trivial because designing the demonstrations that do 068
+not keep the input-output correspondence but keep 069
+the output distribution is difﬁcult. For instance, if 070
+we simply replace the output with a random out- 071
+put as we did in the classiﬁcation tasks, it will 072
+destroy both the input-output correspondence and 073
+the output distribution. We hope future work can 074
+investigate more in this direction. 075
+Stronger link with instruction-following models 076
+(7E5P): We will add discussion on ? who ﬁnd 077
+that instructions that are irrelevant or even mislead- 078
+ing lead to performance gains as much as “good” 079
+1
+arXiv:2202.12837v2  [cs.CL]  20 Oct 2022\n\ninstructions do.080
+Limitation081
+This paper focuses on the tasks from established082
+NLP benchmarks that have real natural language083
+inputs. Synthetic tasks with more limited inputs084
+may actually use the ground truth labels more, as085
+observed by ?. Our paper mainly includes macro-086
+level analysis by examining the average perfor-087
+mance over multiple NLP datasets, but different088
+datasets may behave differently. Appendix dis-089
+cusses this aspect, including ﬁndings that there are090
+larger gaps between using the ground truth labels091
+and using the random labels in some dataset-model092
+pairs (e.g., in the most extreme case, nearly 14%093
+absolute on the ﬁnancial_phrasebank dataset with094
+GPT-J). We believe it is important to understand in095
+which cases the ground truth labels matter or not,096
+which we leave for future work. Furthermore, our097
+work is limited to classiﬁcation and multi-choice098
+tasks. Extension to the open-set tasks such as gener-099
+ation is not trivial, since it is unclear how to remove100
+the input-output correspondence while keeping the101
+correct output distribution. We leave the extension102
+for future work.103
+2
