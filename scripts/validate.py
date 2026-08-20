@@ -108,8 +108,10 @@ class Validator:
   if 8 in done:
    for node in re.findall(r"^#{1,6} (U\d+)\b",self.text("literature/PROBLEM_MAP.md"),re.M):
     block=(re.search(rf"^### Uxx: {node}\b([\s\S]*?)(?=^### |\Z)",cov,re.M) or [""])[0]
-    for field in ("SUPPORTING EVIDENCE","COMPETING EXPLANATION","CONTRADICTORY / LIMITING EVIDENCE","DIRECT FOLLOW-UPS / REBUTTALS","RECENT CAPABILITY CHANGE","EVIDENCE DEPTH","TARGETED SEARCH RESULT","SATURATION","READY / NOT READY"):
+    for field in ("SUPPORTING EVIDENCE","COMPETING EXPLANATION","CONTRADICTORY / LIMITING EVIDENCE","DIRECT FOLLOW-UPS / REBUTTALS","RECENT CAPABILITY CHANGE","EVIDENCE DEPTH","TARGETED SEARCH RESULT","SATURATION"):
      if not re.search(rf"^{re.escape(field)}:\s*\S",block,re.M):self.error(f"Uxx {node} lacks required coverage field: {field}")
+    sat=re.search(r"^SATURATION:\s*(.+)$",block,re.M)
+    if sat and sat.group(1).strip() not in {"READY","NOT READY"}:self.error(f"Uxx {node} has invalid saturation vocabulary")
   if 15 in done:
    for p in ("outputs/EXPERT_BRIEF.md","outputs/RESEARCH_QUESTIONS.md","outputs/FINAL_DECISION.md"):
     if not (ROOT/p).is_file():self.error(f"stage 15 missing {p}")

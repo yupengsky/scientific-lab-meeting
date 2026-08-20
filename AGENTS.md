@@ -22,10 +22,12 @@ Pause only for a blocking condition defined in `WORKFLOW.md` or a defined termin
 
 ## Ownership
 
-- **Parent orchestrator:** workflow state; `literature/INDEX.md`; evidence-set selection; librarian assignments; candidate framing and files; insertion of read-only critic results; disagreement detection and rebuttal routing; evidence-verification routing; integrity validation; `outputs/FINAL_DECISION.md`; optional `outputs/PILOT_SELECTION.md`; pilot scarcity allocation.
-- **literature_scout:** read-only literature discovery, classification, coverage assessment, and saturation judgment. It returns structured records to the parent.
+- **Parent orchestrator:** workflow state; `literature/INDEX.md`; `literature/COVERAGE.md`; evidence-set selection; librarian assignments; persistent candidate files; insertion of read-only critic results; disagreement detection and rebuttal routing; evidence-verification routing; integrity validation; `outputs/EXPERT_BRIEF.md`; `outputs/RESEARCH_QUESTIONS.md`; `outputs/FINAL_DECISION.md`; optional `outputs/PILOT_SELECTION.md`; pilot scarcity allocation.
+- **literature_scout:** read-only literature discovery, classification, and structured retrieval/coverage records. It does not unilaterally declare saturation; the parent applies the structural COVERAGE gate.
 - **librarian:** assigned-paper evidence compression into `literature/cards/` only.
 - **literature_mapper:** `literature/PROBLEM_MAP.md` only.
+- **candidate_framer:** independent scientific framing from one READY Uxx and its supplied verified evidence; returns structured framing to the parent without persistent writes.
+- **novelty_auditor:** independent interpretation of candidate-specific prior art; returns novelty classification and audit findings to the parent without persistent writes.
 - **hamming / medawar / platt / alon:** independent candidate-level scientific judgments only.
 - **skeptical_pi:** one candidate-level final scientific decision.
 
