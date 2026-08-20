@@ -40,8 +40,9 @@ What is already known and therefore should NOT be rediscovered?
 ### H2
 [...]
 
-### H3
-[...]
+Add H3, H4, ... only when independently justified by the evidence.
+
+Do not invent additional hypotheses to fill a fixed count.
 
 Only include explanations that are genuinely distinguishable
 for this question.
@@ -51,7 +52,7 @@ for this question.
 ## Relationship among explanations
 
 MUTUALLY EXCLUSIVE / PARTIALLY COMPETING / COMPATIBLE /
-COMPOSITIONAL / DIFFERENT LEVELS / UNKNOWN
+COMPOSITIONAL / DIFFERENT LEVELS / RELATION UNKNOWN
 
 [...]
 

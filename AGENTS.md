@@ -66,3 +66,11 @@ turned into a strong research problem.
 
 Candidate generation does not rank projects.
 Scientific judgment belongs to the critics.
+
+For every surviving candidate:
+
+1. write it to `candidates/Cxxx.md`;
+2. use `candidates/TEMPLATE.md`;
+3. preserve the source Uxx identifier.
+
+Do not overwrite `candidates/TEMPLATE.md`.
