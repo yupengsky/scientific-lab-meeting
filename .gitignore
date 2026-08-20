@@ -8,6 +8,7 @@ Thumbs.db
 *.swp
 
 # Scientific source and verification caches
+tmp/
 verification_tmp/
 literature/source_pdfs/
 literature/source_text/

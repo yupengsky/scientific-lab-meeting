@@ -50,6 +50,12 @@ State an observation, intervention, or measurement that could produce different 
 
 ## Unverified assumptions
 
+## Construct validity and surviving implementation alternatives
+
+- **Scientific construct identified by the proposed discriminator:**
+- **Implementation-level explanations that could produce the same outcome:**
+- **What this experiment would not identify even if successful:**
+
 # Lab meeting
 
 ## Hamming
@@ -106,4 +112,34 @@ Use READY FOR PI / DECISION BLOCKED — EVIDENCE STILL UNRESOLVED.
 
 DECISION: PENDING
 
-Allowed decisions: FUND / PILOT ONLY / REDESIGN / KILL / DECISION BLOCKED — VERIFY EVIDENCE
+CORE SCIENTIFIC QUESTION: PENDING
+
+STRONGEST ARGUMENT FOR: PENDING
+
+STRONGEST ARGUMENT AGAINST: PENDING
+
+FATAL FLAW: PENDING
+
+CHEAPEST DECISIVE PILOT: PENDING
+
+WHAT THE PILOT MUST DISTINGUISH: PENDING
+
+STOP CRITERION: PENDING
+
+GO CRITERION: PENDING
+
+WHAT A NEGATIVE RESULT WOULD TEACH: PENDING
+
+WHAT SUCCESS WOULD PERMIT US TO CLAIM: PENDING
+
+WHAT SUCCESS WOULD NOT PERMIT US TO CLAIM: PENDING
+
+WHAT WOULD CHANGE MY DECISION: PENDING
+
+BIGGEST REMAINING UNCERTAINTY: PENDING
+
+STRONGEST ALTERNATIVE CANDIDATE: PENDING
+
+WHY THIS CANDIDATE IS BETTER OR WORSE THAN THAT ALTERNATIVE: PENDING
+
+FINAL RATIONALE: PENDING

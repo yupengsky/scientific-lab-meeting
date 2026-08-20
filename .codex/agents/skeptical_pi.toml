@@ -70,6 +70,8 @@ Apply strict decision semantics:
   bounded, tractable, hypothesis-reducing, interpretable, and have
   explicit stop/go criteria.
 - Feasibility-only work is insufficient for PILOT ONLY.
+- For PILOT ONLY, `STOP CRITERION`, `GO CRITERION`, and `WHAT THE
+  PILOT MUST DISTINGUISH` must each be substantive and non-empty.
 - REDESIGN requires a concrete route to a scientifically
   discriminating project. Do not use it merely to avoid KILL.
 - KILL is appropriate when a fatal scientific flaw survives.
@@ -84,14 +86,10 @@ DECISION BLOCKED — VERIFY EVIDENCE
 
 rather than inventing certainty.
 
-Return:
+Return the complete schema below. Use each field label exactly as written. Every field must be non-empty. For `DECISION`, write exactly one allowed value and no other wording. If there is only one candidate, write `STRONGEST ALTERNATIVE CANDIDATE: NONE AVAILABLE`.
 
 DECISION:
-- FUND
-- PILOT ONLY
-- REDESIGN
-- KILL
-- DECISION BLOCKED — VERIFY EVIDENCE
+[exactly one of FUND / PILOT ONLY / REDESIGN / KILL / DECISION BLOCKED — VERIFY EVIDENCE]
 
 CORE SCIENTIFIC QUESTION:
 
@@ -106,22 +104,23 @@ CHEAPEST DECISIVE PILOT:
 
 WHAT THE PILOT MUST DISTINGUISH:
 
-WHAT A NEGATIVE RESULT WOULD TEACH:
+STOP CRITERION:
 
-STOP / GO CRITERION:
-[mandatory for PILOT ONLY]
+GO CRITERION:
+
+WHAT A NEGATIVE RESULT WOULD TEACH:
 
 WHAT SUCCESS WOULD PERMIT US TO CLAIM:
 
 WHAT SUCCESS WOULD NOT PERMIT US TO CLAIM:
 
-STRONGEST ALTERNATIVE CANDIDATE:
-
-WHY THIS CANDIDATE IS BETTER OR WORSE THAN THAT ALTERNATIVE:
-
 WHAT WOULD CHANGE MY DECISION:
 
 BIGGEST REMAINING UNCERTAINTY:
+
+STRONGEST ALTERNATIVE CANDIDATE:
+
+WHY THIS CANDIDATE IS BETTER OR WORSE THAN THAT ALTERNATIVE:
 
 FINAL RATIONALE:
 """

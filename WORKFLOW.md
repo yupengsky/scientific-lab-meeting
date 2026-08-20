@@ -6,6 +6,12 @@ This file defines the complete single-topic state machine. `AGENTS.md` is the sc
 
 The parent orchestrator automatically continues from every successful stage to the next. It does not request permission between normal stages. After each successful stage, it validates the relevant structure, marks the stage complete in `RUN_STATE.md`, and advances `CURRENT_STAGE`.
 
+## Scratch and source-cache policy
+
+Temporary source downloads may be stored only in ignored scratch roots: `tmp/`, `verification_tmp/`, `literature/source_pdfs/`, and `literature/source_text/`. They are never durable evidence. Durable evidence consists of index metadata, paper cards, original-source URLs and pointers, and candidate verification records.
+
+At finalization, attempt best-effort cleanup of scratch material. If environment policy prevents deletion, record the residual ignored, untracked path in the Stage 16 notes. That residual does not block finalization unless it is referenced as a durable scientific artifact. Source verification remains permitted to use temporary downloads when needed.
+
 Pause only when:
 
 - a decision-critical evidence question cannot be resolved;
@@ -130,9 +136,16 @@ The map must:
 
 ## Stage 7 — CANDIDATE GENERATION
 
-The parent frames candidates only from explicit Uxx nodes and writes `candidates/Cxxx.md` using the candidate template. Broad nodes may be partitioned.
+The parent frames candidates only from explicit Uxx nodes and writes `candidates/Cxxx.md` using the candidate template. Broad nodes may be partitioned. Before freezing Round-1 evidence, write `candidates/SCREENING.md` with exactly one row for every Uxx node in `PROBLEM_MAP.md`:
+
+| Uxx | Disposition | Reason | Candidate(s) |
+|---|---|---|---|
+
+Allowed dispositions are `CANDIDATE`, `PARTITIONED`, `DEFERRED`, and `REJECTED`. `CANDIDATE` produces one Cxxx; `PARTITIONED` produces multiple narrower Cxxx candidates; `DEFERRED` records a scientifically real uncertainty without a sufficiently discriminating or tractable candidate; and `REJECTED` records an apparent uncertainty that fails the candidate gate. For `CANDIDATE` and `PARTITIONED`, list the actual Cxxx IDs. For `DEFERRED` and `REJECTED`, record one main scientific reason. This screening audit is not critic input or a scientific evidence source.
 
 Do not free-form brainstorm, impose a count, or create candidates for novelty, method-to-system application, another benchmark, another dataset, an answered question, or explanations at different levels without a possible discriminator.
+
+The construct-validity section must state the scientific construct the proposed discriminator is intended to identify, implementation-level alternatives that could generate the same outcome, and what the experiment would not identify even if successful. An implementation alternative alone does not reject a candidate. If the proposed discriminator cannot distinguish the stated uncertainty from implementation effects, narrow the scientific claim, redesign the discriminator, or do not promote the Uxx node.
 
 Zero candidates is a valid terminal scientific result. Document that result in `outputs/FINAL_DECISION.md`, record `SKIPPED — ZERO CANDIDATES` for inapplicable review and PI stages in the run-state notes, mark those stages complete, advance through final validation, set `STATUS: COMPLETE`, and stop.
 
@@ -149,7 +162,7 @@ For every candidate, run hamming, medawar, platt, and alon independently. Each r
 - relevant paper cards;
 - `INDEX.md` only when necessary.
 
-No critic receives another critic's review or verdict, or parent synthesis of another review. Apply no consensus pressure. The parent inserts each returned review into its matching candidate section without scientific alteration.
+No critic receives another critic's review or verdict, or parent synthesis of another review. Apply no consensus pressure. The parent persists each returned review verbatim inside its matching candidate section. It may indent or Markdown-fence the response, preserving complete textual content. It must not summarize, shorten, rewrite, normalize verdict wording, merge fields, or replace a structured review with prose.
 
 Run `python scripts/validate.py` after Round 1.
 
@@ -159,7 +172,7 @@ For every candidate, verify complete, structurally intact Hamming, Medawar, Plat
 
 ## Stage 10 — TARGETED REBUTTAL
 
-The parent classifies review disagreements as `APPARENT` or `SUBSTANTIVE` and records the classification.
+The parent classifies review disagreements as `NONE`, `APPARENT`, or `SUBSTANTIVE` and records the classification. It compares the substantive claims in the complete reviews before writing `NONE`; same or compatible top-level verdicts alone do not establish agreement. Compare at least the central uncertainty, whether the tractable version preserves the important question, whether the experiment discriminates, whether a pilot is hypothesis-reducing rather than feasibility-only, what a negative result eliminates, fatal assumptions, and whether verification is decision-critical. Do not manufacture disagreement when those claims are genuinely aligned.
 
 Route rebuttal only for substantive disagreements and only to involved critics. Each receives:
 
@@ -198,7 +211,7 @@ Use a separate `skeptical_pi` instance for every ready candidate. Each receives:
 - relevant problem-map context;
 - other candidate files only as opportunity-cost alternatives.
 
-A PI never receives another PI verdict. The parent inserts the returned decision into the target candidate.
+A PI never receives another PI verdict. The parent persists the complete skeptical-PI response verbatim in the target candidate. It may indent or Markdown-fence the response, preserving complete textual content. It must not compress the response to a decision and synopsis, rewrite it, or merge fields.
 
 Allowed decisions: `FUND`, `PILOT ONLY`, `REDESIGN`, `KILL`, `DECISION BLOCKED — VERIFY EVIDENCE`.
 
@@ -220,7 +233,7 @@ Never promote `PILOT ONLY` to `FUND` because no candidate was funded. Explicitly
 
 ## Stage 15 — PILOT SCARCITY SELECTION
 
-This stage applies when FUND count is zero and PILOT ONLY count is at least one. The parent assumes resources for at most one pilot and may select `RUN NO PILOT`.
+This stage applies when FUND count is zero and PILOT ONLY count is at least one. The parent assumes resources for at most one pilot and may select `RUN NO PILOT`. Every eligible pilot competes against `RUN NO PILOT`, including when exactly one eligible pilot exists. Sole eligibility never establishes selection.
 
 Compare eligible pilots on:
 
@@ -232,7 +245,41 @@ Compare eligible pilots on:
 - tractability;
 - cost and technical risk.
 
-Scientific information value precedes cheapness. Write `outputs/PILOT_SELECTION.md`. Use no new custom agent.
+Scientific information value precedes cheapness. For each eligible pilot, explicitly decide whether expected scientific information gain sufficiently exceeds cost, ambiguity, and technical risk to clear the no-action threshold. Write `outputs/PILOT_SELECTION.md` with this structure:
+
+# Pilot Scarcity Selection
+
+## Eligible pilots
+
+## Absolute threshold against RUN NO PILOT
+
+## Pairwise comparison
+
+Use this only for two or more eligible pilots; otherwise write `NOT APPLICABLE`.
+
+## Selection
+
+Write exactly `SELECTED: Cxxx` or `SELECTED: RUN NO PILOT`.
+
+## Why run rather than no pilot
+
+Required when a pilot is selected.
+
+## Why no pilot
+
+Required when `RUN NO PILOT` is selected.
+
+## Selected pilot stop criterion
+
+## Selected pilot go criterion
+
+## Claim permitted after success
+
+## Claim permitted after a clean negative result
+
+## Claim not permitted after either result
+
+When `RUN NO PILOT` is selected, the selected-pilot sections may say `NOT APPLICABLE`. Use no new custom agent.
 
 When the trigger is false, record the stage as completed and do not create `PILOT_SELECTION.md`.
 
@@ -243,6 +290,7 @@ When the trigger is false, record the stage as completed and do not create `PILO
 3. Confirm authoritative output consistency with candidate PI decisions.
 4. Set `STATUS: COMPLETE`, mark Stage 16 complete, and retain `CURRENT_STAGE: FINAL_VALIDATION`.
 5. Run `python scripts/validate.py` again against the finalized state.
-6. Report the scientific terminal result and any unresolved evidence explicitly.
+6. Attempt scratch cleanup and record any permitted residual path in Stage 16 notes.
+7. Report the scientific terminal result and any unresolved evidence explicitly.
 
 The validator performs no scientific judgment. Scientific uncertainty, disagreement, `FUND NONE`, zero candidates, and `RUN NO PILOT` are valid outcomes.

@@ -52,12 +52,10 @@ Do not reward novelty by itself.
 
 Do not defend the project merely because it was proposed.
 
-Return:
+Return the complete schema below. Use each field label exactly as written. Every field must be non-empty. `NEEDS_VERIFICATION` may be `NONE`. For `VERDICT`, write exactly one of the allowed values and no other wording.
 
 VERDICT:
-- IMPORTANT
-- QUESTIONABLE
-- LOW-VALUE
+[exactly one of IMPORTANT / QUESTIONABLE / LOW-VALUE]
 
 CORE QUESTION:
 
@@ -73,8 +71,7 @@ FATAL IMPORTANCE FLAW:
 [none or explanation]
 
 CONFIDENCE:
-[low / medium / high]
 
 NEEDS_VERIFICATION:
-[list any literature claim whose truth could change your verdict]
+[NONE or each literature claim whose truth could change your verdict]
 """

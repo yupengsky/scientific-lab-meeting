@@ -50,12 +50,10 @@ Possible reasons include:
 8. Is there a cheaper attack that preserves most of the
    scientific value?
 
-Return:
+Return the complete schema below. Use each field label exactly as written. Every field must be non-empty. `NEEDS_VERIFICATION` may be `NONE`. For `VERDICT`, write exactly one of the allowed values and no other wording.
 
 VERDICT:
-- TRACTABLE
-- WEAK ATTACK
-- CURRENTLY INSOLUBLE
+[exactly one of TRACTABLE / WEAK ATTACK / CURRENTLY INSOLUBLE]
 
 REASONABLE ATTACK:
 

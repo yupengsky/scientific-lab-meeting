@@ -41,7 +41,7 @@ Do not compute a naive average.
 A catastrophic weakness can kill a project even if several
 dimensions look attractive.
 
-Return:
+Return the complete schema below. Use each field label exactly as written. Every field must be non-empty. `NEEDS_VERIFICATION` may be `NONE`. For `VERDICT`, write exactly one allowed value and no other wording.
 
 SCIENTIFIC INTEREST:
 [low / medium / high]
@@ -65,10 +65,7 @@ EXPECTED RESEARCH VALUE:
 [low / medium / high]
 
 VERDICT:
-- PURSUE
-- PILOT FIRST
-- QUESTIONABLE
-- KILL
+[exactly one of PURSUE / PILOT FIRST / QUESTIONABLE / KILL]
 
 FATAL VALUE FLAW:
 
