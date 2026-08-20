@@ -1,296 +1,79 @@
-# Automatic Scientific Lab Meeting Workflow
+# Automatic Expertise-First Scientific Lab Meeting Workflow
 
-This file defines the complete single-topic state machine. `AGENTS.md` is the scientific constitution. `RUN_STATE.md` is the interruption/resume checkpoint.
+`AGENTS.md` governs scientific integrity. `RUN_STATE.md` is the resumable checkpoint. This workflow begins only in a fresh Codex session after topic scoping has ended; its scientific inputs are `TOPIC.md`, current-tree artifacts, and public scholarly sources.
 
-## Execution rules
+## Execution and routing rules
 
-The parent orchestrator automatically continues from every successful stage to the next. It does not request permission between normal stages. After each successful stage, it validates the relevant structure, marks the stage complete in `RUN_STATE.md`, and advances `CURRENT_STAGE`.
+The parent orchestrator advances automatically after each successful stage, validates structure, records completion and the next stage in `RUN_STATE.md`, and loops back when a gate requires more evidence. Do not use generic inheriting worker/explorer agents for scientific retrieval, extraction, mapping, framing, novelty assessment, critic, or PI work. Use the named custom role with its configured model and `model_reasoning_effort`. If that pinned role cannot run with its configured profile, stop; do not fall back to the parent model.
 
-## Scratch and source-cache policy
+The parent owns durable writes except mapper-owned `PROBLEM_MAP.md` and librarian-owned assigned cards. Scouts transport retrieval and metadata; librarians faithfully compress individual sources; reasoning roles synthesize from durable records. The parent must preserve specialist outputs rather than replacing them with scientific paraphrase.
 
-Temporary source downloads may be stored only in ignored scratch roots: `tmp/`, `verification_tmp/`, `literature/source_pdfs/`, and `literature/source_text/`. They are never durable evidence. Durable evidence consists of index metadata, paper cards, original-source URLs and pointers, and candidate verification records.
-
-At finalization, attempt best-effort cleanup of scratch material. If environment policy prevents deletion, record the residual ignored, untracked path in the Stage 16 notes. That residual does not block finalization unless it is referenced as a durable scientific artifact. Source verification remains permitted to use temporary downloads when needed.
-
-Pause only when:
-
-- a decision-critical evidence question cannot be resolved;
-- required scholarly sources are inaccessible and continuation would require guessing;
-- a tool failure prevents reliable continuation;
-- repository integrity cannot be repaired safely;
-- a defined terminal state is reached.
-
-On resume:
-
-1. read `RUN_STATE.md`;
-2. verify the topic snapshot;
-3. validate artifacts claimed by completed stages;
-4. repair structural integrity failures when safe;
-5. resume from the first incomplete stage.
-
-If `STATUS` is not `NOT_STARTED` and the hash of `TOPIC.md` differs from `TOPIC_SNAPSHOT`, stop with:
-
-`TOPIC CHANGED — CLEAN START BRANCH REQUIRED`
-
-Never merge scientific state across topics. Never use Git history or another ref as scientific input.
-
-## Persistent ownership
-
-The parent orchestrator owns workflow state, index persistence, evidence-set selection, librarian assignments, candidate framing and files, insertion of read-only reviews, disagreement classification, rebuttal and verification routing, integrity checks, portfolio outputs, and pilot scarcity allocation.
-
-The scout discovers literature only. Librarians compress assigned papers only. The mapper owns only `PROBLEM_MAP.md`. Each specialist critic owns only its independent judgment. Each skeptical PI owns one candidate-level decision. The parent mediates persistent writes from read-only agents.
+Pause only for decision-critical inaccessible evidence, failed pinned-agent routing, tool failure, unrepaired integrity failure, or a terminal state. On resume, verify the topic hash and completed artifacts, then resume at the first incomplete stage. A started run whose `TOPIC.md` hash differs from `TOPIC_SNAPSHOT` stops with `TOPIC CHANGED — CLEAN START BRANCH REQUIRED`.
 
 ## Stage 0 — WORKSPACE INITIALIZATION
 
-1. Confirm this working tree represents one topic and `TOPIC.md` no longer contains the baseline instruction.
-2. Read `AGENTS.md`, `WORKFLOW.md`, `TOPIC.md`, `RUN_STATE.md`, and the artifact templates.
-3. Do not inspect Git history, branches, tags, or deleted scientific artifacts.
-4. Set `STATUS: IN_PROGRESS`.
-5. Store the exact `TOPIC.md` byte hash as `TOPIC_SNAPSHOT: sha256:<digest>`.
-6. Confirm generated-artifact locations are empty or clean skeletons.
-7. Run `python scripts/validate.py` and repair structural failures.
+Confirm the baseline topic placeholder has been replaced; read protocol/templates; set `STATUS: IN_PROGRESS`; record exact `TOPIC_SNAPSHOT`; confirm generated locations are clean; run validation. Do not inspect history, branches, deleted artifacts, or other topics.
 
-Success: the workspace is structurally valid and bound to one topic snapshot.
+## Stage 1 — BROAD FIELD DISCOVERY
 
-## Stage 1 — LITERATURE DISCOVERY
+Run repeated `literature_scout` passes with independent scopes: taxonomy/terminology; foundational/canonical work; explanatory families; backward lineage; direct follow-ups/rebuttals; contradictions, limiting evidence, negative results, and replications; alternative terminology; directly bearing adjacent literatures; and recent frontier/capability changes. Persist the deduplicated field corpus in `INDEX.md`. No paper-count target applies; every discovered paper need not get a card. Set index status `BROAD_DISCOVERY_COMPLETE`.
 
-Spawn `literature_scout` for an initial broad-then-narrow pass. The scout returns structured discovery records to the parent and does not write files.
+## Stage 2 — STRUCTURAL COVERAGE EXPANSION
 
-Discovery must:
+Use scouts to fill gaps exposed by the corpus and create/update `COVERAGE.md` for every major explanatory family. Challenge weak family support, absent competing accounts, contradiction searches, follow-up/rebuttal searches, and frontier searches. Persist explicit gaps and set index status `STRUCTURAL_EXPANSION_COMPLETE`.
 
-- construct a provisional field map instead of an exhaustive bibliography;
-- prefer published or accepted work for retrieval priority when relevance is comparable;
-- treat publication status as metadata, never a truth criterion;
-- include important preprints;
-- seek competing explanations, contradictory evidence, negative results, failed replications, anomalies, critiques, and recent capabilities;
-- apply no target paper count;
-- stop at saturation, when more discovery is unlikely to materially change the provisional map.
+## Stage 3 — FIELD SATURATION GATE
 
-For every record return title, authors, year, publication status and venue, stable source URL or identifier, compact abstract-level description, relevance, evidence role, classification, reading availability, and any metadata uncertainty.
+Pass only when each major family has multiple meaningful support sources or is explicitly sparse and therefore not mature; competing explanations have adequate primary evidence; important claims were actively challenged; anchor follow-ups/rebuttals and recent capability work were searched; no major family's key evidence is predominantly abstract-only/weak partial; and a final targeted coverage challenge adds no new major family, fatal scope boundary, or map-changing evidence. Mark each family `READY` or `NOT READY` in `COVERAGE.md`. If any required gap is `NOT READY`, record exact search gaps and return to Stage 2. Never pass because results look repetitive. Set index status `FIELD_SATURATED` only after passing.
 
-The parent deduplicates records and writes `literature/INDEX.md`, including topic, discovery date, literature cutoff/search date, broad query scope, classification, source URL, evidence role, and card path when later available. When Stage 1 records are persisted, set the index status to `DISCOVERY_PASS_COMPLETE`. This is the valid resumable state before Stage 2.
+## Stage 4 — HIGH-LEVERAGE EVIDENCE SELECTION + PAPER CARDS
 
-## Stage 2 — COVERAGE CHALLENGE
+Select CORE and high-leverage SUPPORTING evidence needed to preserve field structure, competing accounts, limitations, causal strength, scope, and recent capabilities. Assign non-overlapping cards to `librarian`. Cards require identity verification against INDEX and reading-depth recording. `INDEX.md` remains the field corpus; cards are a high-leverage layer.
 
-Run a targeted scout challenge against the provisional map. Ask which missing evidence could materially change it. Challenge specifically for:
+## Stage 5 — EVIDENCE IDENTITY / DEPTH REPAIR
 
-- missing explanatory families;
-- contradictory evidence;
-- negative results;
-- replication failures;
-- missing scope regimes;
-- recent capabilities.
+Repair or exclude MISMATCH/UNRESOLVED cards. Repair decision-relevant abstract-only/partial depth with original sources where accessible. Only VERIFIED cards may support map, Uxx saturation, framing, or frozen evidence. Pause if a decision-critical claim remains inaccessible and would require guessing.
 
-Do not run another generic broad search. Zero added papers is valid. The parent merges and deduplicates returned records and records the coverage assessment and saturation judgment in `INDEX.md`.
+## Stage 6 — DEFINITIVE PROBLEM MAP
 
-When the coverage challenge is persisted, set the index status to `DISCOVERY_COMPLETE`.
+Run `literature_mapper` over TOPIC, INDEX, COVERAGE, and VERIFIED cards. It writes the definitive traceable map with structured Uxx nodes and no project proposals.
 
-## Stage 3 — MINIMUM SUFFICIENT EVIDENCE SET
+## Stage 7 — Uxx-SPECIFIC LITERATURE SATURATION
 
-The parent selects the smallest set of papers whose removal would materially weaken the ability to determine:
+For every decision-relevant Uxx, run targeted scout/reading loops for supporting evidence, serious competing explanations, contradictory/limiting evidence, direct follow-ups/rebuttals, recent capability changes, and sufficient primary evidence on all sides of any mechanism comparison. Update the Uxx coverage record. Do not let a mechanism A-vs-B candidate proceed if one side rests mainly on one weak or abstract source.
 
-- established phenomena;
-- competing or compatible explanations;
-- causal versus correlational evidence;
-- limiting evidence;
-- scope limitations;
-- important confounds;
-- recent capability changes.
+## Stage 8 — Uxx SATURATION GATE
 
-Select CORE and only high-leverage SUPPORTING papers. Do not card every discovered paper. Persist selections through the index classification and card-path fields.
+Mark every Uxx `READY` or `NOT READY` with exact missing coverage. Only READY nodes may be framed. If targeted prior art changes/resolves the map, return to Stage 6 or Stage 7 as appropriate. NOT READY is valid.
 
-## Stage 4 — TARGETED PAPER CARDS
+## Stage 9 — CANDIDATE GENERATION + SCREENING
 
-Assign selected papers to `librarian` with unique, non-overlapping card filenames. Each librarian reads only assigned sources and creates one card per paper from `literature/cards/TEMPLATE.md`.
+For each READY Uxx, run `candidate_framer` independently with that node, relevant VERIFIED cards, and map context. The parent writes candidate files from the returned framing and records every Uxx in `SCREENING.md`, including NOT READY, deferred, rejected, candidate, and partitioned dispositions. No fixed count; zero candidates is valid.
 
-Required reading states are `FULL_TEXT`, `PARTIAL`, and `ABSTRACT_ONLY`. `FULL_TEXT` requires actual inspection of the relevant full text.
+## Stage 10 — CANDIDATE PRIOR-ART / NOVELTY SATURATION
 
-For important claims, cards explicitly separate:
+For every candidate, use `literature_scout` for a fresh search of the exact question, competing hypotheses, discriminator, nearest design, alternative terms, direct citations/follow-ups, and recent frontier work. Use `novelty_auditor` independently to classify and complete the candidate novelty audit. Require `NOVELTY SATURATION: PASS`. If prior art materially changes the map or resolves the Uxx, loop to Stage 6–9 before freezing evidence. An old question may survive as reconciliation, boundary, or new-discriminator work; never label it new silently.
 
-- `OBSERVATION`;
-- `AUTHOR INTERPRETATION`;
-- `INFERENCE`.
+## Stage 11 — ROUND-1 BLIND CRITICS
 
-Cards record the scientific question, exact system/model/organism/regime, intervention or measurement, observed result, causal strength, controls, unexcluded alternatives, scope limits, source URL, and section/figure/page pointers when available. The parent updates card paths in `INDEX.md`.
+Freeze eligible evidence with `EVIDENCE_SNAPSHOT`. For every candidate run hamming, medawar, platt, and alon independently with the same snapshot and no other critic output. Persist responses verbatim. Validate afterward.
 
-## Stage 5 — EVIDENCE SUFFICIENCY / TARGETED REPAIR
+## Stage 12 — REVIEW INTEGRITY + TARGETED REBUTTAL
 
-Before mapping, identify high-leverage claims resting on `ABSTRACT_ONLY`, `PARTIAL`, inaccessible, or otherwise weak inspection.
+Repair missing/corrupt reviews under the frozen snapshot. Classify only substantive disagreements and route only those to involved critics with their own review, strongest opposing argument, and eligible evidence. Preserve genuine disagreement.
 
-Repair only claims whose resolution could materially change the problem map. Use original scholarly sources. Do not broadly reread the corpus. Update the relevant cards and index metadata. If a decision-critical mapping claim remains inaccessible and guessing would be required, pause.
+## Stage 13 — DECISION-CRITICAL VERIFICATION + PI READINESS
 
-## Stage 6 — PROBLEM MAP
+Separate source-verifiable questions from future design requirements. Verify only decision-critical source claims against original sources and record outcomes. Mark each candidate `READY FOR PI` or `DECISION BLOCKED — EVIDENCE STILL UNRESOLVED`; design requirements alone do not block. Pause on blocked source evidence.
 
-Run `literature_mapper` over `TOPIC.md`, `INDEX.md`, and current paper cards. A populated prior map is never required. The mapper writes only `literature/PROBLEM_MAP.md`.
+## Stage 14 — INDEPENDENT SKEPTICAL PI
 
-The map must:
+Use a separate `skeptical_pi` instance for each ready candidate. Persist the complete response verbatim. Allowed decisions: FUND, PILOT ONLY, REDESIGN, KILL, or DECISION BLOCKED — VERIFY EVIDENCE. `PILOT ONLY` requires a substantive discriminator and stop/go criteria; `KILL` may mark pilot fields `NOT APPLICABLE — fatal flaw is not pilot-resolvable`.
 
-- separate distinct phenomena hidden under umbrella terminology;
-- separate explanatory levels;
-- classify relations as `MUTUALLY EXCLUSIVE`, `PARTIALLY COMPETING`, `COMPATIBLE`, `COMPOSITIONAL`, `DIFFERENT LEVELS OF EXPLANATION`, or `RELATION UNKNOWN`;
-- prevent scope leakage;
-- distinguish correlation, intervention, and causal evidence;
-- challenge coherent composite stories instead of adopting them automatically;
-- end in structured, traceable Uxx uncertainty nodes;
-- contain no project proposals.
+## Stage 15 — PORTFOLIO + PILOT SCARCITY
 
-## Stage 7 — CANDIDATE GENERATION
-
-The parent frames candidates only from explicit Uxx nodes and writes `candidates/Cxxx.md` using the candidate template. Broad nodes may be partitioned. Before freezing Round-1 evidence, write `candidates/SCREENING.md` with exactly one row for every Uxx node in `PROBLEM_MAP.md`:
-
-| Uxx | Disposition | Reason | Candidate(s) |
-|---|---|---|---|
-
-Allowed dispositions are `CANDIDATE`, `PARTITIONED`, `DEFERRED`, and `REJECTED`. `CANDIDATE` produces one Cxxx; `PARTITIONED` produces multiple narrower Cxxx candidates; `DEFERRED` records a scientifically real uncertainty without a sufficiently discriminating or tractable candidate; and `REJECTED` records an apparent uncertainty that fails the candidate gate. For `CANDIDATE` and `PARTITIONED`, list the actual Cxxx IDs. For `DEFERRED` and `REJECTED`, record one main scientific reason. This screening audit is not critic input or a scientific evidence source.
-
-Do not free-form brainstorm, impose a count, or create candidates for novelty, method-to-system application, another benchmark, another dataset, an answered question, or explanations at different levels without a possible discriminator.
-
-The construct-validity section must state the scientific construct the proposed discriminator is intended to identify, implementation-level alternatives that could generate the same outcome, and what the experiment would not identify even if successful. An implementation alternative alone does not reject a candidate. If the proposed discriminator cannot distinguish the stated uncertainty from implementation effects, narrow the scientific claim, redesign the discriminator, or do not promote the Uxx node.
-
-Zero candidates is a valid terminal scientific result. Document that result in `outputs/FINAL_DECISION.md`, record `SKIPPED — ZERO CANDIDATES` for inapplicable review and PI stages in the run-state notes, mark those stages complete, advance through final validation, set `STATUS: COMPLETE`, and stop.
-
-Run `python scripts/validate.py` after candidate generation.
-
-## Stage 8 — ROUND-1 BLIND CRITICS
-
-Freeze the eligible evidence state before launching reviews. Store `EVIDENCE_SNAPSHOT: sha256:<digest>` in `RUN_STATE.md`; use `python scripts/validate.py --print-evidence-snapshot` to compute the digest. It covers the index, problem map, generated cards, and the scientific-framing portion of every candidate before `# Lab meeting`. Do not modify those frozen inputs after Round 1. Decision-critical verification findings are appended inside candidate lab-meeting sections.
-
-For every candidate, run hamming, medawar, platt, and alon independently. Each receives the same eligible evidence snapshot:
-
-- target candidate;
-- `PROBLEM_MAP.md`;
-- relevant paper cards;
-- `INDEX.md` only when necessary.
-
-No critic receives another critic's review or verdict, or parent synthesis of another review. Apply no consensus pressure. The parent persists each returned review verbatim inside its matching candidate section. It may indent or Markdown-fence the response, preserving complete textual content. It must not summarize, shorten, rewrite, normalize verdict wording, merge fields, or replace a structured review with prose.
-
-Run `python scripts/validate.py` after Round 1.
-
-## Stage 9 — REVIEW INTEGRITY CHECK
-
-For every candidate, verify complete, structurally intact Hamming, Medawar, Platt, and Alon sections. If one is missing or corrupted, rerun only that critic under the original blind evidence snapshot. Do not begin debate with an incomplete Round-1 record.
-
-## Stage 10 — TARGETED REBUTTAL
-
-The parent classifies review disagreements as `NONE`, `APPARENT`, or `SUBSTANTIVE` and records the classification. It compares the substantive claims in the complete reviews before writing `NONE`; same or compatible top-level verdicts alone do not establish agreement. Compare at least the central uncertainty, whether the tractable version preserves the important question, whether the experiment discriminates, whether a pilot is hypothesis-reducing rather than feasibility-only, what a negative result eliminates, fatal assumptions, and whether verification is decision-critical. Do not manufacture disagreement when those claims are genuinely aligned.
-
-Route rebuttal only for substantive disagreements and only to involved critics. Each receives:
-
-- its own original review;
-- the strongest opposing argument;
-- relevant eligible evidence.
-
-Critics may change verdicts. Do not pressure them to defend prior positions. Preserve genuine disagreement. A cheap experiment with ambiguous outcomes is not a high-value pilot.
-
-## Stage 11 — DECISION-CRITICAL EVIDENCE VERIFICATION
-
-Separate unresolved items into:
-
-- `SOURCE-VERIFIABLE EVIDENCE`: factual questions about existing work;
-- `DESIGN REQUIREMENT`: conditions a future study must satisfy.
-
-Rereading papers cannot resolve design requirements. Verify only decision-critical source claims, using original scholarly sources. Record each finding in the candidate as `VERIFIED`, `PARTIALLY VERIFIED`, `NOT SUPPORTED`, or `INCONCLUSIVE`, with a source and precise pointer. Never convert `INCONCLUSIVE` into inference.
-
-Set each candidate's `VERIFICATION_STATUS` to exactly `COMPLETE`, `NONE REQUIRED`, or `BLOCKED`. `COMPLETE` means all decision-critical source verification was resolved and recorded. `NONE REQUIRED` means no decision-critical source claim required verification. `BLOCKED` means unresolved source evidence prevents reliable continuation.
-
-## Stage 12 — PI READINESS GATE
-
-Classify every candidate as:
-
-- `READY FOR PI`; or
-- `DECISION BLOCKED — EVIDENCE STILL UNRESOLVED`.
-
-Design requirements alone do not block PI. Run `python scripts/validate.py` before PI routing. Pause if a decision-critical source question remains unresolved.
-
-## Stage 13 — INDEPENDENT SKEPTICAL PI
-
-Use a separate `skeptical_pi` instance for every ready candidate. Each receives:
-
-- the complete target candidate record;
-- verified evidence;
-- relevant problem-map context;
-- other candidate files only as opportunity-cost alternatives.
-
-A PI never receives another PI verdict. The parent persists the complete skeptical-PI response verbatim in the target candidate. It may indent or Markdown-fence the response, preserving complete textual content. It must not compress the response to a decision and synopsis, rewrite it, or merge fields.
-
-Allowed decisions: `FUND`, `PILOT ONLY`, `REDESIGN`, `KILL`, `DECISION BLOCKED — VERIFY EVIDENCE`.
-
-`PILOT ONLY` is a strict scientific decision, never a safe middle category. A valid pilot is bounded, tractable, hypothesis-reducing, interpretable, and equipped with explicit stop/go criteria. Feasibility-only work is insufficient. Do not use `REDESIGN` to avoid `KILL`. A fatal flaw may dominate positive dimensions. `FUND NONE` is valid.
-
-## Stage 14 — FINAL PORTFOLIO DECISION
-
-After all independent PI decisions, the parent writes `outputs/FINAL_DECISION.md` containing:
-
-- PI decision matrix;
-- FUND candidates;
-- PILOT ONLY candidates;
-- REDESIGN candidates;
-- KILL candidates;
-- fatal flaws;
-- decisive next steps.
-
-Never promote `PILOT ONLY` to `FUND` because no candidate was funded. Explicitly allow: `NO CANDIDATE CURRENTLY JUSTIFIES SUBSTANTIAL RESEARCH EFFORT.`
-
-## Stage 15 — PILOT SCARCITY SELECTION
-
-This stage applies when FUND count is zero and PILOT ONLY count is at least one. The parent assumes resources for at most one pilot and may select `RUN NO PILOT`. Every eligible pilot competes against `RUN NO PILOT`, including when exactly one eligible pilot exists. Sole eligibility never establishes selection.
-
-Compare eligible pilots on:
-
-- importance preserved by the bounded pilot;
-- discrimination strength;
-- expected uncertainty reduction;
-- negative-result value;
-- interpretability;
-- tractability;
-- cost and technical risk.
-
-Scientific information value precedes cheapness. For each eligible pilot, explicitly decide whether expected scientific information gain sufficiently exceeds cost, ambiguity, and technical risk to clear the no-action threshold. Write `outputs/PILOT_SELECTION.md` with this structure:
-
-# Pilot Scarcity Selection
-
-## Eligible pilots
-
-## Absolute threshold against RUN NO PILOT
-
-## Pairwise comparison
-
-Use this only for two or more eligible pilots; otherwise write `NOT APPLICABLE`.
-
-## Selection
-
-Write exactly `SELECTED: Cxxx` or `SELECTED: RUN NO PILOT`.
-
-## Why run rather than no pilot
-
-Required when a pilot is selected.
-
-## Why no pilot
-
-Required when `RUN NO PILOT` is selected.
-
-## Selected pilot stop criterion
-
-## Selected pilot go criterion
-
-## Claim permitted after success
-
-## Claim permitted after a clean negative result
-
-## Claim not permitted after either result
-
-When `RUN NO PILOT` is selected, the selected-pilot sections may say `NOT APPLICABLE`. Use no new custom agent.
-
-When the trigger is false, record the stage as completed and do not create `PILOT_SELECTION.md`.
+Write `outputs/EXPERT_BRIEF.md`, `outputs/RESEARCH_QUESTIONS.md`, and `outputs/FINAL_DECISION.md`. The expert brief covers field structure, families, lineages, established knowledge, disagreements, negative results, scope, capability changes, mature-looking-open lines, and genuine unresolved areas. Research questions records every surviving or interesting question with scientific question, novelty type, closest prior work, importance, unresolvedness, discriminator, why now, failure reason, and meeting decision. When no candidate is funded, this remains a useful question-centered output. Create `PILOT_SELECTION.md` only when no candidate is funded and one or more are PILOT ONLY; compare every pilot against RUN NO PILOT.
 
 ## Stage 16 — FINAL VALIDATION
 
-1. Run `python scripts/validate.py`.
-2. Repair every structural failure before finalization.
-3. Confirm authoritative output consistency with candidate PI decisions.
-4. Set `STATUS: COMPLETE`, mark Stage 16 complete, and retain `CURRENT_STAGE: FINAL_VALIDATION`.
-5. Run `python scripts/validate.py` again against the finalized state.
-6. Attempt scratch cleanup and record any permitted residual path in Stage 16 notes.
-7. Report the scientific terminal result and any unresolved evidence explicitly.
-
-The validator performs no scientific judgment. Scientific uncertainty, disagreement, `FUND NONE`, zero candidates, and `RUN NO PILOT` are valid outcomes.
+Run `python scripts/validate.py`, repair structural failures, check output/candidate consistency, set `STATUS: COMPLETE`, retain `CURRENT_STAGE: FINAL_VALIDATION`, validate again, and clean ignored scratch material best-effort. The validator does not judge scientific quality. `FUND NONE`, zero candidates, NOT READY nodes, disagreement, and RUN NO PILOT are valid outcomes.

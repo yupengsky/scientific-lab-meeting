@@ -1,10 +1,38 @@
-﻿[agents]
-
+[agents]
 enabled = true
-
-# Enough for four independent scientific critics plus
-# literature-processing agents when needed.
 max_concurrent_threads_per_session = 8
-
-# Keep interruption information visible to the parent.
 interrupt_message = true
+
+[agents.topic_advisor]
+config_file = "agents/topic_advisor.toml"
+description = "Interactive neutral-topic scoping only."
+[agents.literature_scout]
+config_file = "agents/literature_scout.toml"
+description = "High-volume scholarly retrieval and metadata transport only."
+[agents.librarian]
+config_file = "agents/librarian.toml"
+description = "Faithful assigned-paper evidence extraction only."
+[agents.literature_mapper]
+config_file = "agents/literature_mapper.toml"
+description = "Evidence-grounded field synthesis and problem mapping only."
+[agents.candidate_framer]
+config_file = "agents/candidate_framer.toml"
+description = "Independent framing from one saturated uncertainty only."
+[agents.novelty_auditor]
+config_file = "agents/novelty_auditor.toml"
+description = "Independent candidate prior-art and novelty interpretation only."
+[agents.hamming]
+config_file = "agents/hamming.toml"
+description = "Scientific importance critic only."
+[agents.medawar]
+config_file = "agents/medawar.toml"
+description = "Scientific attackability critic only."
+[agents.platt]
+config_file = "agents/platt.toml"
+description = "Strong-inference critic only."
+[agents.alon]
+config_file = "agents/alon.toml"
+description = "Expected scientific-return critic only."
+[agents.skeptical_pi]
+config_file = "agents/skeptical_pi.toml"
+description = "Independent final candidate-level scientific decision only."

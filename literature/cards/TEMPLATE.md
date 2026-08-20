@@ -14,6 +14,10 @@
 
 **Publication status:** PUBLISHED / ACCEPTED / PREPRINT / UNCLEAR
 
+**IDENTITY_STATUS:** VERIFIED / MISMATCH / UNRESOLVED
+
+**Identity verification:** exact title, authors, year, and DOI/arXiv/canonical identifier checked against `literature/INDEX.md`.
+
 **READING_STATUS:** FULL_TEXT / PARTIAL / ABSTRACT_ONLY
 
 **Source URL:**

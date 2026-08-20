@@ -5,8 +5,9 @@
 Status progression:
 
 - `NOT_STARTED`
-- `DISCOVERY_PASS_COMPLETE` after Stage 1 records are persisted
-- `DISCOVERY_COMPLETE` after the Stage 2 coverage challenge
+- `BROAD_DISCOVERY_COMPLETE` after Stage 1 records are persisted
+- `STRUCTURAL_EXPANSION_COMPLETE` after Stage 2 records are persisted
+- `FIELD_SATURATED` after Stage 3 passes
 
 **Topic:**
 
@@ -16,9 +17,9 @@ Status progression:
 
 **Broad query scope:**
 
-## Coverage assessment
+## Field-corpus coverage assessment
 
-Record the provisional field map, challenged omissions, scope coverage, and the scout's saturation judgment.
+Record orthogonal discovery passes, challenged omissions, scope coverage, and explicit structural gaps. `COVERAGE.md` is the detailed audit.
 
 ## Discovery records
 

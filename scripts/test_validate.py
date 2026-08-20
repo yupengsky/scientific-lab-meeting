@@ -1,106 +1,32 @@
 #!/usr/bin/env python3
-"""Lightweight regression checks for protocol validator record gates."""
-
-from __future__ import annotations
-
-import sys
-import tempfile
-import unittest
-from contextlib import contextmanager
+import tempfile, unittest
 from pathlib import Path
+import validate
 
-
-SCRIPTS = Path(__file__).resolve().parent
-sys.path.insert(0, str(SCRIPTS))
-import validate as protocol_validate
-
-
-def record(fields: list[str], overrides: dict[str, str] | None = None) -> str:
-    overrides = overrides or {}
-    return "\n\n".join(f"{field}: {overrides.get(field, 'present')}" for field in fields)
-
-
-@contextmanager
-def fixture_root() -> Path:
-    original = protocol_validate.ROOT
-    with tempfile.TemporaryDirectory() as temporary:
-        root = Path(temporary)
-        (root / "candidates").mkdir()
-        (root / "outputs").mkdir()
-        protocol_validate.ROOT = root
-        try:
-            yield root
-        finally:
-            protocol_validate.ROOT = original
-
-
-class ValidatorRegressionTests(unittest.TestCase):
-    def test_clean_baseline_passes(self) -> None:
-        self.assertEqual(protocol_validate.Validator().run(), 0)
-
-    def test_rejects_hamming_paraphrase_verdict(self) -> None:
-        validator = protocol_validate.Validator()
-        schema = protocol_validate.CRITIC_SCHEMAS["Hamming"]
-        validator.validate_record(protocol_validate.ROOT / "candidates/C001.md", "Hamming", record(schema["fields"], {"VERDICT": "HIGH IMPORTANCE"}), schema)
-        self.assertTrue(any("invalid VERDICT" in error for error in validator.errors))
-
-    def test_rejects_incomplete_medawar_review(self) -> None:
-        validator = protocol_validate.Validator()
-        schema = protocol_validate.CRITIC_SCHEMAS["Medawar"]
-        validator.validate_record(protocol_validate.ROOT / "candidates/C001.md", "Medawar", "VERDICT: TRACTABLE\n\nREASONABLE ATTACK: present", schema)
-        self.assertTrue(any("must contain exactly one" in error for error in validator.errors))
-
-    def test_rejects_platt_missing_prediction_and_elimination(self) -> None:
-        validator = protocol_validate.Validator()
-        schema = protocol_validate.CRITIC_SCHEMAS["Platt"]
-        fields = [field for field in schema["fields"] if field not in {"PREDICTION TABLE", "WHAT EACH OUTCOME ELIMINATES"}]
-        validator.validate_record(protocol_validate.ROOT / "candidates/C001.md", "Platt", record(fields, {"VERDICT": "PURSUE", "DISCRIMINATION STRENGTH": "PARTIAL"}), schema)
-        self.assertTrue(any("PREDICTION TABLE" in error for error in validator.errors))
-        self.assertTrue(any("WHAT EACH OUTCOME ELIMINATES" in error for error in validator.errors))
-
-    def test_rejects_alon_missing_expected_value(self) -> None:
-        validator = protocol_validate.Validator()
-        schema = protocol_validate.CRITIC_SCHEMAS["Alon"]
-        fields = [field for field in schema["fields"] if field != "EXPECTED KNOWLEDGE GAIN"]
-        validator.validate_record(protocol_validate.ROOT / "candidates/C001.md", "Alon", record(fields, {"VERDICT": "PURSUE"}), schema)
-        self.assertTrue(any("EXPECTED KNOWLEDGE GAIN" in error for error in validator.errors))
-
-    def test_rejects_pi_decision_only(self) -> None:
-        validator = protocol_validate.Validator()
-        validator.validate_pi_record(protocol_validate.ROOT / "candidates/C001.md", "DECISION: PILOT ONLY")
-        self.assertTrue(any("CORE SCIENTIFIC QUESTION" in error for error in validator.errors))
-
-    def test_rejects_stage7_screening_omission(self) -> None:
-        with fixture_root() as root:
-            (root / "candidates/SCREENING.md").write_text(
-                "# Candidate Screening\n\n| Uxx | Disposition | Reason | Candidate(s) |\n|---|---|---|---|\n| U001 | DEFERRED | no discriminator | NONE |\n",
-                encoding="utf-8",
-            )
-            validator = protocol_validate.Validator()
-            validator.validate_screening({7}, ["U001", "U002"], {})
-            self.assertTrue(any("omits problem-map nodes" in error for error in validator.errors))
-
-    def test_rejects_nonpilot_pilot_selection(self) -> None:
-        with fixture_root() as root:
-            (root / "outputs/PILOT_SELECTION.md").write_text(
-                "# Pilot Scarcity Selection\n\n"
-                "## Eligible pilots\n\nC001\n\n"
-                "## Absolute threshold against RUN NO PILOT\n\nC001 is compared with RUN NO PILOT.\n\n"
-                "## Pairwise comparison\n\nNOT APPLICABLE\n\n"
-                "## Selection\n\nSELECTED: C999\n\n"
-                "## Why run rather than no pilot\n\npresent\n\n"
-                "## Why no pilot\n\npresent\n\n"
-                "## Selected pilot stop criterion\n\npresent\n\n"
-                "## Selected pilot go criterion\n\npresent\n\n"
-                "## Claim permitted after success\n\npresent\n\n"
-                "## Claim permitted after a clean negative result\n\npresent\n\n"
-                "## Claim not permitted after either result\n\npresent\n",
-                encoding="utf-8",
-            )
-            validator = protocol_validate.Validator()
-            validator.validate_pilot_selection({"C001"})
-            self.assertTrue(any("selects non-PILOT candidate" in error for error in validator.errors))
-
-
-if __name__ == "__main__":
-    unittest.main()
+class Gates(unittest.TestCase):
+ def test_clean_baseline(self): self.assertEqual(validate.Validator().run(),0)
+ def test_model_matrix_is_exact(self):
+  v=validate.Validator();v.validate_agents();self.assertFalse(v.errors)
+ def test_missing_model_pin_is_rejected(self):
+  with tempfile.TemporaryDirectory() as d:
+   root=Path(d);(root/".codex/agents").mkdir(parents=True);(root/".codex/config.toml").write_text("[agents.literature_scout]\nconfig_file = 'agents/literature_scout.toml'",encoding="utf-8");(root/".codex/agents/literature_scout.toml").write_text("name = 'literature_scout'\nmodel_reasoning_effort = 'low'",encoding="utf-8")
+   old=validate.ROOT;validate.ROOT=root;v=validate.Validator();v.validate_agents();validate.ROOT=old;self.assertTrue(v.errors)
+ def test_unexpected_model_and_effort_are_rejected(self):
+  with tempfile.TemporaryDirectory() as d:
+   root=Path(d);(root/".codex/agents").mkdir(parents=True);(root/".codex/config.toml").write_text("[agents.literature_scout]\nconfig_file = 'agents/literature_scout.toml'",encoding="utf-8");(root/".codex/agents/literature_scout.toml").write_text("name='literature_scout'\nmodel='wrong'\nmodel_reasoning_effort='high'",encoding="utf-8")
+   old=validate.ROOT;validate.ROOT=root;v=validate.Validator();v.validate_agents();validate.ROOT=old;self.assertTrue(any("unexpected" in e for e in v.errors))
+ def test_rejects_missing_card_identity(self):
+  with tempfile.TemporaryDirectory() as d:
+   p=Path(d)/"x.md";p.write_text("**READING_STATUS:** FULL_TEXT",encoding="utf-8")
+   v=validate.Validator(); old=validate.ROOT; validate.ROOT=Path(d); (Path(d)/"literature/cards").mkdir(parents=True); p.rename(Path(d)/"literature/cards/x.md");v.cards({4});validate.ROOT=old;self.assertTrue(v.errors)
+ def test_rejects_invalid_confidence_and_verification(self):
+  t="VERDICT: IMPORTANT\nCONFIDENCE: MAYBE\nCONFIDENCE RATIONALE: x\nNEEDS_VERIFICATION: SOURCE: x"
+  v=validate.Validator(); old=validate.ROOT
+  with tempfile.TemporaryDirectory() as d:
+   validate.ROOT=Path(d);(Path(d)/"candidates").mkdir();(Path(d)/"candidates/C001.md").write_text(t,encoding="utf-8");v.candidates({11},[])
+  validate.ROOT=old;self.assertTrue(v.errors)
+ def test_field_ready_with_gap_is_rejected(self):
+  with tempfile.TemporaryDirectory() as d:
+   root=Path(d);(root/"literature").mkdir();(root/"literature/COVERAGE.md").write_text("## Field-level explanatory families\n\n### Family: x\nEXPLANATORY FAMILY: x\nPRIMARY SUPPORT: NOT READY\nINDEPENDENT SUPPORT: x\nCOMPETING ACCOUNT: x\nCONTRADICTORY / LIMITING EVIDENCE: x\nDIRECT FOLLOW-UPS / REBUTTALS: x\nRECENT CAPABILITY CHANGE: x\nREADING DEPTH: x\nREMAINING GAP: x\nSTATUS: READY\n\n## Uxx-specific coverage",encoding="utf-8")
+   old=validate.ROOT;validate.ROOT=root;v=validate.Validator();v.coverage({3});validate.ROOT=old;self.assertTrue(v.errors)
+if __name__=="__main__": unittest.main()

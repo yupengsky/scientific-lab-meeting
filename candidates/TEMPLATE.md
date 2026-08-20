@@ -48,6 +48,20 @@ State an observation, intervention, or measurement that could produce different 
 
 ### Original sources requiring verification
 
+## Candidate prior-art / novelty audit
+
+**NOVELTY TYPE:** NEW QUESTION / UNRESOLVED EXISTING QUESTION / REPLICATION / RECONCILIATION / NEW DISCRIMINATOR FOR OLD QUESTION / NEW REGIME / BOUNDARY CONDITION / METHOD / MEASUREMENT ADVANCE
+
+**CLOSEST PRIOR WORK:**
+
+**WHAT PRIOR WORK ALREADY DID:**
+
+**WHAT THIS CANDIDATE ADDS:**
+
+**WHY THE DIFFERENCE IS SCIENTIFICALLY MATERIAL:**
+
+**NOVELTY SATURATION:** PASS / NOT READY
+
 ## Unverified assumptions
 
 ## Construct validity and surviving implementation alternatives
@@ -109,6 +123,8 @@ PENDING
 Use READY FOR PI / DECISION BLOCKED — EVIDENCE STILL UNRESOLVED.
 
 ## Skeptical PI
+
+For `KILL`, pilot-related fields may state exactly: `NOT APPLICABLE — fatal flaw is not pilot-resolvable`.
 
 DECISION: PENDING
 

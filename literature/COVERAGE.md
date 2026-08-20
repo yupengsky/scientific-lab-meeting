@@ -1,0 +1,36 @@
+# Literature Coverage Audit
+
+**Status:** NOT_STARTED
+
+This is a coverage audit. It is not primary evidence. Populate it from `INDEX.md`, verified cards, and targeted scout returns.
+
+## Field-level explanatory families
+
+### Family: [name]
+
+EXPLANATORY FAMILY:
+PRIMARY SUPPORT:
+INDEPENDENT SUPPORT:
+COMPETING ACCOUNT:
+CONTRADICTORY / LIMITING EVIDENCE:
+DIRECT FOLLOW-UPS / REBUTTALS:
+RECENT CAPABILITY CHANGE:
+READING DEPTH:
+REMAINING GAP:
+STATUS: READY / NOT READY
+
+## Uxx-specific coverage
+
+Add this section only after `PROBLEM_MAP.md` contains Uxx nodes.
+
+### Uxx: Uxxx
+
+SUPPORTING EVIDENCE:
+COMPETING EXPLANATION:
+CONTRADICTORY / LIMITING EVIDENCE:
+DIRECT FOLLOW-UPS / REBUTTALS:
+RECENT CAPABILITY CHANGE:
+EVIDENCE DEPTH:
+TARGETED SEARCH RESULT:
+SATURATION:
+READY / NOT READY:

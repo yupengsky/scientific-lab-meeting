@@ -2,6 +2,8 @@
 
 This directory contains only authoritative cross-candidate decisions for the current topic.
 
+- `EXPERT_BRIEF.md`: required field-level expertise summary at finalization.
+- `RESEARCH_QUESTIONS.md`: required question-centered result, including valuable questions when no candidate is funded.
 - `FINAL_DECISION.md`: required final portfolio decision when the workflow reaches portfolio finalization.
 - `PILOT_SELECTION.md`: created only when no candidate is funded and at least one candidate receives `PILOT ONLY`.
 

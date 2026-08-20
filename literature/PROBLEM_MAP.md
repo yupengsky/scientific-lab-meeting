@@ -43,3 +43,5 @@ Each populated node must have a unique `Uxx` identifier and record:
 - relevant paper-card references.
 
 Do not propose projects in this file.
+
+Only `READY` Uxx nodes in `COVERAGE.md` may enter candidate framing.
