@@ -1,3 +1,3 @@
 # Research Direction
 
-Replace this line with one broad scientific research direction before starting the workflow.
+Mechanistic understanding of active visual perception under partial observability and environmental uncertainty.
