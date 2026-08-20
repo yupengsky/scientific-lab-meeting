@@ -1,7 +1,7 @@
 ﻿name = "literature_mapper"
 
 description = """
-Maps paper cards into a compact literature index and scientific
+Maps paper cards and the literature index into a scientific
 problem landscape. Identifies consensus, disagreements, unresolved
 questions and evidence gaps without proposing research projects.
 """
@@ -31,14 +31,6 @@ literature/PROBLEM_MAP.md
 
 Do not modify literature/INDEX.md unless the parent agent
 explicitly requests a consistency repair.
-
-INDEX.md should answer:
-
-- What papers exist in the local knowledge base?
-- What topics are they relevant to?
-- What central question does each paper address?
-- What is its central result?
-- Where is its paper card?
 
 PROBLEM_MAP.md should organize literature by scientific problem,
 not by publication chronology.
