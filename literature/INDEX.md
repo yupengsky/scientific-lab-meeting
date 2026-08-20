@@ -2,7 +2,11 @@
 
 **Status:** NOT_STARTED
 
-Replace `NOT_STARTED` with `DISCOVERY_COMPLETE` after the parent persists and challenges the discovery records.
+Status progression:
+
+- `NOT_STARTED`
+- `DISCOVERY_PASS_COMPLETE` after Stage 1 records are persisted
+- `DISCOVERY_COMPLETE` after the Stage 2 coverage challenge
 
 **Topic:**
 

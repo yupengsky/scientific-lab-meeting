@@ -62,7 +62,7 @@ Discovery must:
 
 For every record return title, authors, year, publication status and venue, stable source URL or identifier, compact abstract-level description, relevance, evidence role, classification, reading availability, and any metadata uncertainty.
 
-The parent deduplicates records and writes `literature/INDEX.md`, including topic, discovery date, literature cutoff/search date, broad query scope, classification, source URL, evidence role, and card path when later available. After the coverage challenge, it replaces the index status `NOT_STARTED` with `DISCOVERY_COMPLETE`.
+The parent deduplicates records and writes `literature/INDEX.md`, including topic, discovery date, literature cutoff/search date, broad query scope, classification, source URL, evidence role, and card path when later available. When Stage 1 records are persisted, set the index status to `DISCOVERY_PASS_COMPLETE`. This is the valid resumable state before Stage 2.
 
 ## Stage 2 — COVERAGE CHALLENGE
 
@@ -76,6 +76,8 @@ Run a targeted scout challenge against the provisional map. Ask which missing ev
 - recent capabilities.
 
 Do not run another generic broad search. Zero added papers is valid. The parent merges and deduplicates returned records and records the coverage assessment and saturation judgment in `INDEX.md`.
+
+When the coverage challenge is persisted, set the index status to `DISCOVERY_COMPLETE`.
 
 ## Stage 3 — MINIMUM SUFFICIENT EVIDENCE SET
 
@@ -176,6 +178,8 @@ Separate unresolved items into:
 
 Rereading papers cannot resolve design requirements. Verify only decision-critical source claims, using original scholarly sources. Record each finding in the candidate as `VERIFIED`, `PARTIALLY VERIFIED`, `NOT SUPPORTED`, or `INCONCLUSIVE`, with a source and precise pointer. Never convert `INCONCLUSIVE` into inference.
 
+Set each candidate's `VERIFICATION_STATUS` to exactly `COMPLETE`, `NONE REQUIRED`, or `BLOCKED`. `COMPLETE` means all decision-critical source verification was resolved and recorded. `NONE REQUIRED` means no decision-critical source claim required verification. `BLOCKED` means unresolved source evidence prevents reliable continuation.
+
 ## Stage 12 — PI READINESS GATE
 
 Classify every candidate as:
@@ -237,7 +241,8 @@ When the trigger is false, record the stage as completed and do not create `PILO
 1. Run `python scripts/validate.py`.
 2. Repair every structural failure before finalization.
 3. Confirm authoritative output consistency with candidate PI decisions.
-4. Set `STATUS: COMPLETE` and retain the final `CURRENT_STAGE` and completed checklist.
-5. Report the scientific terminal result and any unresolved evidence explicitly.
+4. Set `STATUS: COMPLETE`, mark Stage 16 complete, and retain `CURRENT_STAGE: FINAL_VALIDATION`.
+5. Run `python scripts/validate.py` again against the finalized state.
+6. Report the scientific terminal result and any unresolved evidence explicitly.
 
 The validator performs no scientific judgment. Scientific uncertainty, disagreement, `FUND NONE`, zero candidates, and `RUN NO PILOT` are valid outcomes.

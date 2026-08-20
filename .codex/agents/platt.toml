@@ -25,6 +25,11 @@ For every candidate:
 
 Avoid strawman alternatives.
 
+Use only the number of serious hypotheses justified by the
+candidate and evidence. Do not assume a fixed hypothesis count.
+Introduce H3, H4, or further hypotheses only when each is
+independently justified, never to fill a table.
+
 3. For every hypothesis, state predictions.
 
 4. Determine whether the proposed experiment produces divergent
@@ -46,7 +51,7 @@ Prefer:
 
 Observation
     ↓
-H1 / H2 / H3
+justified hypothesis set
     ↓
 different predictions
     ↓
@@ -65,8 +70,8 @@ COMPETING HYPOTHESES:
 
 PREDICTION TABLE:
 
-| Outcome / measurement | H1 | H2 | H3 |
-|---|---|---|---|
+[Construct columns dynamically so they exactly match the serious
+hypotheses identified above. Do not add unused hypothesis columns.]
 
 PROPOSED CRITICAL EXPERIMENT:
 

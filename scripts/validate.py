@@ -295,8 +295,22 @@ class Validator:
                     self.error(f"{path.relative_to(ROOT)} lacks a disagreement classification")
             if 11 in completed:
                 section = self.section(text, "Decision-critical evidence verification")
-                if not section or "PENDING" in section:
-                    self.error(f"{path.relative_to(ROOT)} has incomplete evidence-verification record")
+                verification_values = re.findall(
+                    r"^VERIFICATION_STATUS:[ \t]*(.+?)\s*$", section, re.MULTILINE
+                )
+                if len(verification_values) != 1:
+                    self.error(
+                        f"{path.relative_to(ROOT)} must contain exactly one VERIFICATION_STATUS"
+                    )
+                elif verification_values[0].strip() not in {
+                    "COMPLETE",
+                    "NONE REQUIRED",
+                    "BLOCKED",
+                }:
+                    self.error(
+                        f"{path.relative_to(ROOT)} has invalid VERIFICATION_STATUS: "
+                        f"{verification_values[0].strip()}"
+                    )
             if 12 in completed:
                 section = self.section(text, "PI readiness")
                 if not section or "PENDING" in section:
@@ -363,6 +377,10 @@ class Validator:
         index = self.text("literature/INDEX.md")
         problem_map = self.text("literature/PROBLEM_MAP.md")
         candidates = set(candidate_contents)
+        index_status_match = re.search(
+            r"^\*\*Status:\*\*[ \t]*(\S.*)$", index, re.MULTILINE
+        )
+        index_status = index_status_match.group(1).strip() if index_status_match else ""
         map_nodes = re.findall(r"^###? (U\d+)\b", problem_map, re.MULTILINE)
         duplicate_nodes = {node for node in map_nodes if map_nodes.count(node) > 1}
         if duplicate_nodes:
@@ -372,8 +390,12 @@ class Validator:
                 self.error(f"{candidate_id} cites missing problem-map node {node}")
 
         if 1 in completed:
-            if "**Status:** NOT_STARTED" in index:
-                self.error("stage 1 claims completion while INDEX status is NOT_STARTED")
+            expected_status = "DISCOVERY_COMPLETE" if 2 in completed else "DISCOVERY_PASS_COMPLETE"
+            if index_status != expected_status:
+                self.error(
+                    f"INDEX status must be {expected_status} for the completed discovery stages; "
+                    f"found {index_status or '<missing>'}"
+                )
             for field in ("Topic", "Discovery date", "Literature cutoff / search date", "Broad query scope"):
                 if not re.search(rf"^\*\*{re.escape(field)}:\*\*[ \t]+\S.*$", index, re.MULTILINE):
                     self.error(f"completed literature discovery lacks INDEX field: {field}")

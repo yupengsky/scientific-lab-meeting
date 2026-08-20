@@ -83,10 +83,12 @@ Before constructing uncertainty nodes:
 1. Separate distinct phenomena that the field may group under
    the same umbrella term.
 
-2. Separate explanatory levels:
-   behavioral / training-distribution / normative-statistical /
-   algorithmic / representational / circuit / retrieval /
-   output-verbalization, as appropriate to the field.
+2. Infer explanatory levels from the current phenomenon and
+   scientific field, then separate levels that the evidence actually
+   supports. Possible examples include behavioral, ecological,
+   physiological, molecular, causal-mechanistic, computational, or
+   population-level explanations. Examples are illustrative, not
+   mandatory. Do not impose an ontology derived from another domain.
 
 3. For major explanations, classify relationships as:
    MUTUALLY EXCLUSIVE

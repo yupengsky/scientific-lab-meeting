@@ -86,6 +86,8 @@ PENDING
 
 ## Decision-critical evidence verification
 
+VERIFICATION_STATUS: PENDING
+
 ### Source-verifiable evidence
 
 Use VERIFIED / PARTIALLY VERIFIED / NOT SUPPORTED / INCONCLUSIVE with original-source pointers.
