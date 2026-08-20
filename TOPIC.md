@@ -1,3 +1,3 @@
 # Research Direction
 
-Replace this line with one broad scientific research direction before starting the workflow.
+Mechanistic understanding of robust contact-rich robotic assembly under physical and perceptual uncertainty.
