@@ -16,7 +16,7 @@ Read:
 - literature/INDEX.md
 - literature/cards/
 - TOPIC.md
-- existing literature/PROBLEM_MAP.md
+- literature/PROBLEM_MAP.md (which may be a clean unpopulated schema)
 
 Use paper cards as your primary evidence source.
 Do not independently perform broad literature discovery; that belongs to literature_scout.
@@ -28,6 +28,12 @@ NOT to propose projects.
 Your primary output is:
 
 literature/PROBLEM_MAP.md
+
+A clean run does not require a pre-existing populated problem map.
+Modify only literature/PROBLEM_MAP.md. Do not modify cards,
+candidates, outputs, or RUN_STATE.md.
+Replace the clean schema's `Status: NOT_STARTED` value with
+`Status: COMPLETE` when the populated map is complete.
 
 Do not modify literature/INDEX.md unless the parent agent
 explicitly requests a consistency repair.
@@ -96,6 +102,9 @@ Before constructing uncertainty nodes:
 5. Track the empirical scope of every important mechanistic claim.
    Prevent extrapolation from toy/synthetic/restricted regimes
    to broader systems without evidence.
+
+   Explicitly distinguish correlation, intervention evidence, and
+   evidence that supports a causal conclusion.
 
 6. If a composite explanation reconciles several literatures,
    treat it as a hypothesis and actively identify, from the current

@@ -1,27 +1,32 @@
 # Scientific Lab Meeting
 
-A reusable Codex workspace for discovering and evaluating high-value scientific research problems from a broad research direction.
+A reusable Codex workspace for discovering and evaluating scientific research problems from one broad research direction.
 
-## Workflow
+## Start a run
+
+1. Create a new branch from the clean `start` branch.
+2. Edit `TOPIC.md` with one broad scientific direction.
+3. Open a fresh Codex session in that working tree.
+4. Give Codex this single instruction:
+
+> Read TOPIC.md and run the complete workflow defined by AGENTS.md and WORKFLOW.md.
+>
+> Start from public scientific evidence for this topic. Do not use Git history, other branches, previous experiments, or user scientific priors as scientific input.
+>
+> Continue automatically until a terminal state or a genuinely blocking condition is reached.
+
+Normal runs require no intermediate user prompts.
+
+## Main artifacts
 
 ```text
 TOPIC.md
-  ↓
-literature_scout → literature/INDEX.md
-  ↓
-librarian → literature/cards/
-  ↓
-literature_mapper → literature/PROBLEM_MAP.md
-  ↓
-candidate problems
-  ↓
-Hamming / Medawar / Platt / Alon
-  ↓
-Skeptical PI
+  -> literature/INDEX.md
+  -> literature/cards/
+  -> literature/PROBLEM_MAP.md
+  -> candidates/Cxxx.md
+  -> outputs/FINAL_DECISION.md
+  -> outputs/PILOT_SELECTION.md  (only when applicable)
 ```
 
-Edit `TOPIC.md`, then ask Codex:
-
-> Read TOPIC.md. Run the complete literature discovery and scientific problem-finding workflow defined in AGENTS.md. Start from public scientific literature. Do not ask me for papers or scientific priors.
-
-The scout searches arXiv and scholarly web sources. Librarians create traceable cards from selected paper URLs. Original sources are revisited only when a decision requires verification.
+`RUN_STATE.md` supports interruption and resume within the same topic. Use a fresh branch from `start` for every different topic.

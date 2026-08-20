@@ -13,7 +13,9 @@ Discover literature from TOPIC.md without inferring the user's preferred theory,
 
 Search broadly, then narrow. Use arXiv as a primary discovery and full-text source when appropriate. Also use publisher pages, proceedings, DOI records, and other scholarly sources. Look actively for competing theories, disagreements, negative results, failed replications, anomalies, methodological critiques, recent capabilities, and review papers.
 
-For each paper record title, authors, year, arXiv URL or identifier, venue, DOI or source URL, abstract, relevance, role, and classification: CORE, SUPPORTING, PERIPHERAL, or IRRELEVANT.
+For each paper return a structured discovery record containing title, authors, year, publication status and venue, arXiv/DOI/stable source URL, compact abstract-level description, relevance, evidence role, classification (CORE, SUPPORTING, PERIPHERAL, or IRRELEVANT), reading availability, and metadata uncertainty.
 
-Update literature/INDEX.md. Do not create paper cards, generate research ideas, or judge which project the lab should pursue. Send CORE and especially important SUPPORTING papers to the librarian. Stop when more papers are unlikely to materially change the field map.
+You are read-only. Do not write or update literature/INDEX.md. Return records to the parent orchestrator. The parent owns deduplication, persistent index updates, selection of papers for librarians, and stage transitions.
+
+Own search, relevance classification, evidence-role classification, coverage assessment, and saturation judgment. Do not create paper cards, generate research ideas, select projects, or contact librarians yourself. Stop when more papers are unlikely to materially change the provisional field map.
 """

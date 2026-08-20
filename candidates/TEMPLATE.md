@@ -1,153 +1,107 @@
-﻿# Candidate [ID]
+# Candidate Cxxx
 
 ## Source uncertainty
 
 **Problem-map node:** Uxx
 
-This candidate must be traceable to an uncertainty already
-identified in `literature/PROBLEM_MAP.md`.
-
----
-
 ## Scientific question
-
-[...]
-
----
 
 ## Scientific uncertainty being reduced
 
-What exactly is unknown?
-
-[...]
-
----
+State exactly what remains unknown.
 
 ## Established evidence
 
-What is already known and therefore should NOT be rediscovered?
-
-- [...]
-- [...]
-
----
+State what is already known and should not be rediscovered.
 
 ## Relevant explanations
 
 ### H1
-[...]
 
 ### H2
-[...]
 
-Add H3, H4, ... only when independently justified by the evidence.
-
-Do not invent additional hypotheses to fill a fixed count.
-
-Only include explanations that are genuinely distinguishable
-for this question.
-
----
+Add further hypotheses only when independently justified. Include only explanations that are genuinely distinguishable for this question.
 
 ## Relationship among explanations
 
-MUTUALLY EXCLUSIVE / PARTIALLY COMPETING / COMPATIBLE /
-COMPOSITIONAL / DIFFERENT LEVELS / RELATION UNKNOWN
-
-[...]
-
----
+Use: MUTUALLY EXCLUSIVE / PARTIALLY COMPETING / COMPATIBLE / COMPOSITIONAL / DIFFERENT LEVELS OF EXPLANATION / RELATION UNKNOWN
 
 ## Why current evidence is insufficient
 
-[...]
-
----
-
 ## Potential discriminating observation
 
-What observation, intervention, or measurement could produce
-different expectations under the relevant explanations?
-
-[...]
-
-Do not require a complete experiment design yet.
-
----
+State an observation, intervention, or measurement that could produce different expectations. A complete experiment design is not required yet.
 
 ## Provisional attack
 
-What currently available capability might make the uncertainty
-tractable?
-
-[...]
-
-This is provisional. Medawar will evaluate it independently.
-
----
-
 ## Why now
-
-What changed scientifically or technically that may make the
-question answerable now?
-
-[...]
-
----
 
 ## Scope
 
-What systems / regimes does the question actually concern?
-
-[...]
-
----
-
 ## Negative-result information
-
-If the most natural hypothesis is wrong, what uncertainty is
-still reduced?
-
-[...]
-
----
 
 ## Evidence basis
 
 ### Problem-map sections
-- [...]
 
 ### Paper cards
-- [...]
 
 ### Original sources requiring verification
-- [...]
-
----
 
 ## Unverified assumptions
-
-- [...]
-- [...]
-
----
 
 # Lab meeting
 
 ## Hamming
+
 PENDING
 
 ## Medawar
+
 PENDING
 
 ## Platt
+
 PENDING
 
 ## Alon
+
+PENDING
+
+## Review integrity
+
 PENDING
 
 ## Debate
+
+**Disagreement classification:** PENDING
+
+### Substantive disagreements
+
 PENDING
 
-## Skeptical PI
+### Targeted rebuttal
+
 PENDING
+
+## Decision-critical evidence verification
+
+### Source-verifiable evidence
+
+Use VERIFIED / PARTIALLY VERIFIED / NOT SUPPORTED / INCONCLUSIVE with original-source pointers.
+
+### Design requirements
+
+Record future-study requirements separately from source questions.
+
+## PI readiness
+
+PENDING
+
+Use READY FOR PI / DECISION BLOCKED — EVIDENCE STILL UNRESOLVED.
+
+## Skeptical PI
+
+DECISION: PENDING
+
+Allowed decisions: FUND / PILOT ONLY / REDESIGN / KILL / DECISION BLOCKED — VERIFY EVIDENCE

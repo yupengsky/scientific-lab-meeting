@@ -2,98 +2,86 @@
 
 ## Metadata
 
-**Authors:** [...]
+**Authors:**
 
-**Year:** [...]
+**Year:**
 
-**arXiv:** [...]
+**arXiv:**
 
-**Published venue:** [...]
+**Published venue:**
 
-**DOI:** [...]
-
-**Publisher / proceedings:** [...]
+**DOI:**
 
 **Publication status:** PUBLISHED / ACCEPTED / PREPRINT / UNCLEAR
 
-**Reading status:** FULL_TEXT / PARTIAL / ABSTRACT_ONLY
+**READING_STATUS:** FULL_TEXT / PARTIAL / ABSTRACT_ONLY
 
----
+**Source URL:**
 
-## Abstract
-
-[...] 
+**Evidence role:** CORE / HIGH-LEVERAGE SUPPORTING
 
 ## Scientific question
 
-[...] 
+## Exact system and regime
+
+Record the model, organism, dataset, experimental regime, and scope actually studied.
 
 ## Main claims
 
-[...] 
+For every important claim use the following fields.
 
-## Key observations
+### Claim
 
-[...] 
+**OBSERVATION:**
 
-## Evidence for major claims
+**AUTHOR INTERPRETATION:**
 
-[...] 
+**INFERENCE:**
 
-## Observation vs interpretation
+**Intervention or measurement:**
 
-### Observed / demonstrated
+**Observed result:**
 
-- [...]
+**Causal strength:** CORRELATIONAL / INTERVENTION EVIDENCE / CAUSAL EVIDENCE / UNCLEAR
 
-### Author interpretation
+**Controls:**
 
-- [...]
+**Alternative explanations not excluded:**
+
+**Scope limitations:**
+
+**Source pointer:** section / figure / page / URL
+
+Repeat the claim block only when needed.
 
 ## Important controls
 
-- [...]
-
 ## Critical assumptions
-
-- [...]
-
-## Remaining alternative explanations
-
-- [...]
 
 ## Limitations
 
-- [...]
-
 ## What this paper supports
 
-- [...]
-
-## What this paper does NOT establish
-
-- [...]
+## What this paper does not establish
 
 ## Explicit open questions
 
-- [...]
-
 ## Evidence concerns
 
-**Replication:** [...]
+**Replication:**
 
-**Measurement limitations:** [...]
+**Measurement limitations:**
 
-**Potential confounding:** [...]
+**Potential confounding:**
 
-**Statistical / experimental concerns:** [...]
+**Statistical / experimental concerns:**
 
 ## Source pointers
 
-| Item | Source |
+| Item | Source URL and section / figure / page |
 |---|---|
-| Abstract | URL |
-| Full paper | URL |
-| Main result | section / figure |
-| Important control | section / figure |
-| Limitations | section |
+| Abstract | |
+| Full paper | |
+| Main result | |
+| Important control | |
+| Limitations | |

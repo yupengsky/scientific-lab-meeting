@@ -1,76 +1,63 @@
 # Scientific Lab Meeting Protocol
 
-The user provides only a broad research direction through `TOPIC.md`. Do not infer that the topic implies a preferred theory, hypothesis, method, paper, or conclusion.
+This repository runs one scientific topic per working tree. `TOPIC.md` supplies a broad research direction. Do not infer a preferred theory, hypothesis, method, paper, or conclusion.
 
-## Evidence hierarchy
+## Scientific input isolation
 
-Use:
+Scientific reasoning for a run may use only:
+
+1. `TOPIC.md`;
+2. scientific artifacts generated in the current working tree;
+3. public scholarly sources relevant to the current topic.
+
+Do not inspect or use Git history, deleted files, `main`, other branches, tags, previous dry-run candidates, previous literature selections, previous PI decisions, or previous pilot selections as scientific input. Git history is protocol provenance only.
+
+One working tree represents exactly one scientific topic. Test a different topic from a fresh branch created from the clean `start` baseline. If a started run's topic snapshot differs from `TOPIC.md`, stop with `TOPIC CHANGED — CLEAN START BRANCH REQUIRED`.
+
+## Automatic orchestration
+
+The parent orchestrator owns the workflow and follows `WORKFLOW.md`. It continues automatically between successful stages and updates `RUN_STATE.md` after every stage. Normal stages require no user permission.
+
+Pause only for a blocking condition defined in `WORKFLOW.md` or a defined terminal state. On resume, validate completed-stage artifacts and continue from the first incomplete stage.
+
+## Ownership
+
+- **Parent orchestrator:** workflow state; `literature/INDEX.md`; evidence-set selection; librarian assignments; candidate framing and files; insertion of read-only critic results; disagreement detection and rebuttal routing; evidence-verification routing; integrity validation; `outputs/FINAL_DECISION.md`; optional `outputs/PILOT_SELECTION.md`; pilot scarcity allocation.
+- **literature_scout:** read-only literature discovery, classification, coverage assessment, and saturation judgment. It returns structured records to the parent.
+- **librarian:** assigned-paper evidence compression into `literature/cards/` only.
+- **literature_mapper:** `literature/PROBLEM_MAP.md` only.
+- **hamming / medawar / platt / alon:** independent candidate-level scientific judgments only.
+- **skeptical_pi:** one candidate-level final scientific decision.
+
+The parent mediates every persistent write produced by a read-only agent.
+
+## Evidence discipline
+
+Use this evidence hierarchy:
 
 1. `literature/PROBLEM_MAP.md`
 2. `literature/INDEX.md`
 3. relevant `literature/cards/*.md`
-4. the original arXiv, publisher, or proceedings source when verification is important
+4. original arXiv, publisher, or proceedings sources when verification matters
 
-Paper cards are compressed evidence. Original scholarly sources are consulted selectively. Never pretend an abstract-only reading is a full-text review.
+Distinguish ESTABLISHED FACT, AUTHOR CLAIM, OBSERVATION, INFERENCE, and SPECULATION. Paper cards are compressed evidence. Never represent abstract-only reading as full-text review. Mark decision-relevant uncertainty `NEEDS_VERIFICATION` with the source and exact detail. Never resolve uncertainty by guessing.
 
-## Literature workflow
+## Candidate gate
 
-1. Read `TOPIC.md`.
-2. Spawn `literature_scout` to search arXiv and the scholarly web broadly.
-3. Update `literature/INDEX.md` with lightweight discovery records.
-4. Send CORE and important SUPPORTING papers to `librarian`.
-5. Spawn `literature_mapper` to update `literature/PROBLEM_MAP.md`.
-6. Generate candidates only after the problem map exists.
+Generate candidates only from explicit Uxx uncertainty nodes in `literature/PROBLEM_MAP.md`. Every candidate cites its source node and uses `candidates/TEMPLATE.md`. Candidates may refine or partition a broad node.
 
-The scout discovers literature. The librarian reads specified scholarly sources and creates cards. The mapper synthesizes cards. None of these agents should generate research ideas during their assigned stages.
-
-## Evidence discipline
-
-Distinguish ESTABLISHED FACT, AUTHOR CLAIM, OBSERVATION, INFERENCE, and SPECULATION. Critics operate over the curated evidence state. If a conclusion depends on an uncertain detail, mark `NEEDS_VERIFICATION` with the paper and detail. Do not resolve uncertainty by guessing.
+Do not create a candidate for novelty alone, applying a method to a new system, another benchmark or dataset, a question already answered, or explanations at different levels without a possible discriminator. Do not impose a candidate count. Zero candidates is a valid terminal scientific result.
 
 ## Lab meeting
 
-Run `hamming`, `medawar`, `platt`, and `alon` independently and blindly for the first round. Preserve real disagreements, then run targeted rebuttals. Finally send the complete case to `skeptical_pi`.
+Freeze one eligible evidence snapshot, then run hamming, medawar, platt, and alon independently and blindly for every candidate. Each receives the same eligible evidence state and sees no other critic output.
 
-The PI must return `FUND`, `PILOT ONLY`, `REDESIGN`, `KILL`, or `DECISION BLOCKED — VERIFY EVIDENCE`.
+Validate all four reviews before debate. Route only substantive disagreements to targeted rebuttal. Verify only decision-critical source claims against original scholarly sources. Keep design requirements separate from source-verifiable questions.
 
-Do not reward novelty alone, technical difficulty, or complexity. Prefer decisive experiments whose outcomes reduce scientific uncertainty.
+Run a separate skeptical PI instance for each ready candidate. Allowed decisions are `FUND`, `PILOT ONLY`, `REDESIGN`, `KILL`, and `DECISION BLOCKED — VERIFY EVIDENCE`. A fatal flaw may dominate other dimensions. `FUND NONE` is valid.
 
-## Candidate generation
+Use `outputs/FINAL_DECISION.md` for the cross-candidate decision. Create `outputs/PILOT_SELECTION.md` only when scarcity selection applies. Do not use dated output filenames for the normal pipeline.
 
-Candidates must originate from explicit uncertainty nodes in
-literature/PROBLEM_MAP.md.
+## Integrity
 
-Do not free-form brainstorm unrelated ideas.
-
-Every candidate must cite its source uncertainty node.
-
-A candidate should sharpen an uncertainty into a question that
-could in principle be resolved by evidence.
-
-Do not create a candidate when:
-- the only rationale is novelty;
-- no scientific uncertainty is identified;
-- the supposed competing explanations operate at different
-  explanatory levels and no discriminating observation is defined;
-- existing literature already answers the question;
-- the question merely proposes applying a method to a new dataset.
-
-Candidates may refine or partition broad uncertainty nodes.
-
-Do not force every uncertainty node to produce a candidate.
-Do not force a minimum number of candidates.
-
-It is valid to conclude that no current uncertainty can yet be
-turned into a strong research problem.
-
-Candidate generation does not rank projects.
-Scientific judgment belongs to the critics.
-
-For every surviving candidate:
-
-1. write it to `candidates/Cxxx.md`;
-2. use `candidates/TEMPLATE.md`;
-3. preserve the source Uxx identifier.
-
-Do not overwrite `candidates/TEMPLATE.md`.
+Run `python scripts/validate.py` at the gates specified in `WORKFLOW.md`. The validator checks structure only. Repair structural failures before continuing. Do not overwrite template files.

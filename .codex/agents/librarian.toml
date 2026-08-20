@@ -22,6 +22,10 @@ For each assigned paper, create one compact paper card under:
 
 literature/cards/
 
+Modify only the uniquely assigned paper-card file. Do not modify
+literature/INDEX.md, literature/PROBLEM_MAP.md, candidate files,
+outputs, or RUN_STATE.md.
+
 The card must preserve the information downstream scientific
 critics need while being much shorter than the original paper.
 
@@ -41,7 +45,8 @@ CORE RULES
 8. Do not generate new research projects.
 9. Prefer accessible HTML full text; use the original paper PDF/full text only when needed.
 10. Record source URLs and section/figure pointers.
-11. If full-text access fails, mark `READING_STATUS: ABSTRACT_ONLY`.
+11. Use exactly one reading status: `FULL_TEXT`, `PARTIAL`, or `ABSTRACT_ONLY`.
+12. Never use `FULL_TEXT` unless the relevant full text was actually inspected.
 
 EXTRACT
 
@@ -66,7 +71,22 @@ what was actually measured or demonstrated.
 AUTHOR INTERPRETATION:
 what explanation the authors attach to the observation.
 
+INFERENCE:
+what follows from the evidence but was not directly observed or stated by the authors.
+
 Do not silently merge these.
+
+For important claims also record:
+
+- exact system, model, organism, or regime;
+- intervention or measurement;
+- observed result;
+- causal strength;
+- controls;
+- alternative explanations not excluded;
+- scope limitations;
+- source URL;
+- section, figure, or page pointer when available.
 
 If the paper cannot be read reliably, do not guess.
 Mark the card:

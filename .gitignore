@@ -6,3 +6,15 @@ Thumbs.db
 *.tmp
 *.bak
 *.swp
+
+# Scientific source and verification caches
+verification_tmp/
+literature/source_pdfs/
+literature/source_text/
+
+# Tool caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

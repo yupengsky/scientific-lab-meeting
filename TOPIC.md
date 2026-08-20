@@ -1,3 +1,3 @@
 # Research Direction
 
-Mechanistic understanding of in-context learning in transformer language models.
+Replace this line with one broad scientific research direction before starting the workflow.

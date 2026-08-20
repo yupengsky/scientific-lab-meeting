@@ -1,34 +1,10 @@
 # Outputs
 
-This directory stores snapshots of major research decisions.
+This directory contains only authoritative cross-candidate decisions for the current topic.
 
-Suggested files:
+- `FINAL_DECISION.md`: required final portfolio decision when the workflow reaches portfolio finalization.
+- `PILOT_SELECTION.md`: created only when no candidate is funded and at least one candidate receives `PILOT ONLY`.
 
-`problem-map-YYYY-MM-DD.md`
+Candidate reviews, debate, verification findings, and candidate-level PI decisions remain embedded in `candidates/Cxxx.md`.
 
-Snapshot of the scientific problem landscape.
-
-`lab-meeting-YYYY-MM-DD.md`
-
-Detailed discussion of selected candidate problems.
-
-`portfolio-YYYY-MM-DD.md`
-
-Final ranking of surviving research projects.
-
-`decision-C001-YYYY-MM-DD.md`
-
-Deep decision record for one project.
-
----
-
-These files are historical records.
-
-Do not treat an old decision as permanently correct.
-
-Scientific evaluation should be rerun when:
-
-- important new literature appears;
-- new experimental capability becomes available;
-- new evidence contradicts an assumption;
-- project constraints materially change.
+The normal pipeline does not use dated output filenames. A new topic requires a fresh branch from the clean `start` baseline.
